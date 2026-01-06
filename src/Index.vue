@@ -84,14 +84,14 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="rating" label="评分" width="100" sortable>
+        <el-table-column prop="rating" label="评分" width="180" sortable>
           <template #default="{ row }">
             <el-rate
               v-model="row.rating"
               disabled
               show-score
               text-color="#ff9900"
-              score-template="{value}"
+              :score-template="`${row.rating}`"
             />
           </template>
         </el-table-column>
@@ -332,7 +332,8 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Plus, Search, Refresh } from '@element-plus/icons-vue'
-
+import axios from './api.js' 
+axios.defaults.baseURL = 'http://localhost:8080'
 const loading = ref(false)
 const dialogVisible = ref(false)
 const detailDialogVisible = ref(false)
@@ -361,30 +362,7 @@ const sortConfig = reactive({
 })
 
 // 配送员列表数据
-const deliveryList = ref([
-  {
-    delivery_id: 1,
-    name: '张三',
-    phone: '13800138000',
-    id_card: '110101199001011234',
-    vehicle_type: 'motorcycle',
-    license_plate: '京A12345',
-    status: 'available',
-    rating: 4.8,
-    completed_orders: 150,
-    created_at: '2023-12-01 10:00:00'
-  },
-  {
-    delivery_id: 2,
-    name: '李四',
-    phone: '13800138001',
-    vehicle_type: 'bicycle',
-    status: 'busy',
-    rating: 4.5,
-    completed_orders: 89,
-    created_at: '2023-12-01 11:00:00'
-  }
-])
+const deliveryList = ref([])
 
 // 对话框标题
 const dialogTitle = computed(() => {
@@ -457,20 +435,38 @@ const fetchDeliveryList = async () => {
   loading.value = true
   try {
     const params = {
-      ...searchForm,
       page: pagination.current,
       size: pagination.size,
-      sort: sortConfig.prop,
-      order: sortConfig.order
+      ...searchForm
     }
     
-    // 接口调用示例：
-    // const response = await axios.get('/api/delivery-persons', { params })
-    // deliveryList.value = response.data.list
-    // pagination.total = response.data.total
+    const response = await axios.get('/api/deliveryPersons', {
+      params: {
+        page: params.page || 0,
+        size: params.size || 10,
+        name: params.name,
+        phone: params.phone,
+        status: params.status,
+        vehicleType: params.vehicleType,
+        minRating: params.minRating,
+        maxRating: params.maxRating
+      }
+    });
+    console.log('API返回数据:', response.data);
     
-    // 模拟数据
-    pagination.total = deliveryList.value.length
+    deliveryList.value = response.data.content.map(item => ({
+      delivery_id: item.id,
+      name: item.name,
+      phone: item.phone,
+      id_card: item.idCard,
+      vehicle_type: item.vehicleType,
+      license_plate: item.licensePlate,
+      status: item.status,
+      rating: item.rating,
+      completed_orders: item.completedOrders,
+      created_at: item.createdAt
+    }));
+    pagination.total = response.data.totalElements;
   } catch (error) {
     ElMessage.error('获取配送员列表失败')
   } finally {
@@ -537,9 +533,7 @@ const handleViewDetail = (row) => {
 // 接口标注：删除配送员
 const handleDelete = async (id) => {
   try {
-    // 接口调用示例：
-    // await axios.delete(`/api/delivery-persons/${id}`)
-    
+    const response =await axios.delete(`/api/deliveryPersons/${id}`)
     ElMessage.success('删除成功')
     fetchDeliveryList()
   } catch (error) {
@@ -548,21 +542,23 @@ const handleDelete = async (id) => {
 }
 
 // 提交表单
+// 提交表单
+// ... existing code ...
+// 提交表单
 const submitForm = async () => {
   try {
     await deliveryFormRef.value.validate()
     submitting.value = true
-    
     if (deliveryForm.delivery_id) {
-      // 接口标注：更新配送员
-      // await axios.put(`/api/delivery-persons/${deliveryForm.delivery_id}`, deliveryForm)
+      const response = await axios.put(`/api/deliveryPersons/${deliveryForm.delivery_id}`, deliveryForm)
+      console.log('更新成功:', response.data)
       ElMessage.success('更新成功')
     } else {
-      // 接口标注：新增配送员
-      // await axios.post('/api/delivery-persons', deliveryForm)
+      const response = await axios.post('/api/deliveryPersons', deliveryForm)
+      console.log('新增成功:', response.data)
       ElMessage.success('新增成功')
     }
-    
+
     dialogVisible.value = false
     fetchDeliveryList()
   } catch (error) {
@@ -571,6 +567,7 @@ const submitForm = async () => {
     submitting.value = false
   }
 }
+
 
 // 对话框关闭
 const handleDialogClosed = () => {
