@@ -33,16 +33,22 @@ export default {
   // 更新商品
   updateProduct(id, data) {
     return request({
-      url: `/api/products/${id}`,
+      url: `/api/products/${id}/status`,
       method: 'put',
       data
     })
   },
-  
+  // 删除商品
+  deleteProduct(id){
+    return request({
+      url: `/api/products/${id}`,
+      method: 'delete'
+    })
+  },
   // 更新商品状态
   updateProductStatus(id, status) {
     return request({
-      url: `/api/products/${id}/status`,
+      url: `/api/products/${id}`,
       method: 'put',
       data: { status }
     })

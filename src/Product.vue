@@ -45,8 +45,9 @@
               clearable
               @change="handleSearch"
             >
-              <el-option label="上架" value="online" />
-              <el-option label="下架" value="offline" />
+              <el-option label="可用" value="available" />
+              <el-option label="售罄" value="sold_out" />
+              <el-option label="隐藏" value="hidden" />
             </el-select>
           </el-form-item>
           <el-form-item>
@@ -80,9 +81,9 @@
           <el-table-column prop="status" label="状态" width="100">
             <template #default="scope">
               <el-tag
-                :type="scope.row.status === 'online' ? 'success' : 'danger'"
+                :type="scope.row.status === 'available' ? 'success' : scope.row.status === 'sold_out' ? 'warning' : 'info'"
               >
-                {{ scope.row.status === 'online' ? '上架' : '下架' }}
+                {{ scope.row.status === 'available' ? '可用' : scope.row.status === 'sold_out' ? '售罄' : '隐藏' }}
               </el-tag>
             </template>
           </el-table-column>
@@ -158,8 +159,9 @@
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-select v-model="productForm.status" placeholder="请选择状态">
-            <el-option label="上架" value="online" />
-            <el-option label="下架" value="offline" />
+            <el-option label="可用" value="available" />
+            <el-option label="售罄" value="sold_out" />
+            <el-option label="隐藏" value="hidden" />
           </el-select>
         </el-form-item>
       </el-form>
@@ -182,9 +184,9 @@
           <el-descriptions-item label="库存">{{ currentDetail?.stock }}</el-descriptions-item>
           <el-descriptions-item label="状态" span="2">
             <el-tag
-              :type="currentDetail?.status === 'online' ? 'success' : 'danger'"
+              :type="currentDetail?.status === 'available' ? 'success' : currentDetail?.status === 'sold_out' ? 'warning' : 'info'"
             >
-              {{ currentDetail?.status === 'online' ? '上架' : '下架' }}
+              {{ currentDetail?.status === 'available' ? '可用' : currentDetail?.status === 'sold_out' ? '售罄' : '隐藏' }}
             </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="描述" span="2">{{ currentDetail?.description }}</el-descriptions-item>
@@ -198,7 +200,8 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search, Refresh } from '@element-plus/icons-vue'
-
+import productApi from './product'
+import restaurantApi from './restaurant'
 const loading = ref(false)
 const dialogVisible = ref(false)
 const detailDialogVisible = ref(false)
@@ -208,8 +211,8 @@ const currentDetail = ref(null)
 
 // 餐厅列表（用于下拉选择）
 const restaurantList = ref([
-  { restaurant_id: 1, name: '美味蛋糕店' },
-  { restaurant_id: 2, name: '甜心烘焙' }
+{ restaurant_id: 1, name: '美味蛋糕店' },
+{ restaurant_id: 2, name: '甜心烘焙' }
 ])
 
 // 搜索表单
@@ -227,30 +230,7 @@ const pagination = reactive({
 })
 
 // 商品列表数据
-const productList = ref([
-  {
-    product_id: 1,
-    name: '巧克力蛋糕',
-    restaurant_id: 1,
-    restaurant_name: '美味蛋糕店',
-    price: 98.00,
-    stock: 50,
-    description: '精选进口巧克力制作，口感丝滑',
-    status: 'online',
-    created_at: '2023-12-01 10:00:00'
-  },
-  {
-    product_id: 2,
-    name: '草莓蛋糕',
-    restaurant_id: 2,
-    restaurant_name: '甜心烘焙',
-    price: 88.00,
-    stock: 30,
-    description: '新鲜草莓搭配奶油，酸甜可口',
-    status: 'online',
-    created_at: '2023-12-02 11:00:00'
-  }
-])
+const productList = ref([])
 
 // 商品表单
 const productForm = reactive({
@@ -260,7 +240,7 @@ const productForm = reactive({
   price: 0,
   stock: 0,
   description: '',
-  status: 'online'
+  status: 'available'
 })
 
 // 表单验证规则
@@ -289,27 +269,65 @@ const dialogTitle = computed(() => {
 
 // 初始化数据
 onMounted(() => {
-  fetchProductList()
+  fetchRestaurantList()    // 获取餐厅列表
+  fetchProductList()    // 获取商品列表
 })
+const fetchRestaurantList = async () => {
+  loading.value = true
+  try {
+    const response = await restaurantApi.getRestaurantList({
+      page: 1,
+      size: 100,
+    })
+    if (response && response.data) {
+      const apiData = response.data
+      const formatRestaurantData = (restaurant) => ({
+        restaurant_id: restaurant.restaurantId,
+        name: restaurant.name,
+        address: restaurant.address,
+        phone: restaurant.phone,
+        opening_hours: restaurant.openingHours,
+        rating: restaurant.rating,
+        status: restaurant.status,
+        created_at: restaurant.createdAt ? new Date(restaurant.createdAt).toLocaleString('zh-CN') : '未知',
+        description: restaurant.description,
+        cover_url: restaurant.coverUrl,
+        logo_url: restaurant.logoUrl,
+        delivery_fee: restaurant.deliveryFee,
+        min_order_amount: restaurant.minOrderAmount,
+        estimated_delivery_time: restaurant.estimatedDeliveryTime,
+        total_orders: restaurant.totalOrders
+      })
 
+      if (apiData.content && Array.isArray(apiData.content)) {
+        restaurantList.value = apiData.content.map(formatRestaurantData)
+      } else {
+        restaurantList.value = []
+      }
+    } else {
+      restaurantList.value = []
+    }
+  } catch (error) {
+    ElMessage.error('获取餐厅列表失败')
+    console.error('获取餐厅列表失败:', error)
+  }
+}
 // 获取商品列表
 const fetchProductList = async () => {
   loading.value = true
   try {
-    // 实际项目中使用API调用
-    // const response = await productApi.getProductList({
-    //   page: pagination.current,
-    //   page_size: pagination.size,
-    //   ...searchForm
-    // })
-    // productList.value = response.data
-    // pagination.total = response.total
+    const response = await productApi.getProductList({
+      page: pagination.current,
+      size: pagination.size,
+      ...searchForm
+    })
+    console.log(response);
     
-    // 模拟数据
-    pagination.total = productList.value.length
-    loading.value = false
+    productList.value = response.data.data || []
+    pagination.total = response.data.total || 0
   } catch (error) {
     ElMessage.error('获取商品列表失败')
+  } finally {
     loading.value = false
   }
 }
@@ -352,7 +370,7 @@ const handleAdd = () => {
     price: 0,
     stock: 0,
     description: '',
-    status: 'online'
+    status: 'available'
   })
   dialogVisible.value = true
 }
@@ -378,15 +396,8 @@ const handleDelete = async (row) => {
       type: 'warning'
     })
     
-    // 实际项目中使用API调用
-    // await productApi.deleteProduct(row.product_id)
-    
-    // 模拟删除
-    const index = productList.value.findIndex(item => item.product_id === row.product_id)
-    if (index !== -1) {
-      productList.value.splice(index, 1)
-    }
-    
+    const response= await productApi.deleteProduct(row.product_id)
+    console.log(response.data.success);
     ElMessage.success('删除成功')
     fetchProductList()
   } catch (error) {
@@ -404,9 +415,19 @@ const handleSubmit = async () => {
     await productFormRef.value.validate()
     submitting.value = true
     
+    // 转换数据格式，将下划线命名转换为驼峰命名
+    const submitData = {
+      name: productForm.name,
+      restaurantId: productForm.restaurant_id, // 转换为后端期望的字段名
+      price: productForm.price,
+      stock: productForm.stock,
+      description: productForm.description,
+      status: productForm.status
+    }
+    console.log(submitData);
+    
     if (productForm.product_id) {
-      // 编辑
-      // await productApi.updateProduct(productForm.product_id, productForm)
+      const reactive = await productApi.updateProduct(productForm.product_id, submitData)
       const index = productList.value.findIndex(item => item.product_id === productForm.product_id)
       if (index !== -1) {
         const restaurant = restaurantList.value.find(r => r.restaurant_id === productForm.restaurant_id)
@@ -417,8 +438,7 @@ const handleSubmit = async () => {
       }
       ElMessage.success('更新成功')
     } else {
-      // 新增
-      // const response = await productApi.addProduct(productForm)
+      const response = await productApi.addProduct(submitData)
       const restaurant = restaurantList.value.find(r => r.restaurant_id === productForm.restaurant_id)
       const newProduct = {
         ...productForm,
