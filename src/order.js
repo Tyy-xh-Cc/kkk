@@ -1,5 +1,5 @@
 // src/api/modules/order.js
-import request from '@/api'
+import request from './api.js'
 
 // 订单管理相关接口
 export default {

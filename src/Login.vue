@@ -100,7 +100,7 @@ const handleLogin = async () => {
       localStorage.setItem('userInfo', JSON.stringify(response.data.userInfo))
       
       ElMessage.success(response.data.message || '登录成功')
-      router.push('/dashboard')
+      router.push('/delivery')
     } else {
       // 登录失败，显示后端返回的错误信息
       ElMessage.error(response.data.message || '登录失败')

@@ -3,7 +3,6 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { ElMessage } from 'element-plus'
 
 // 导入组件
-import Dashboard from './Dashboard.vue'
 import Login from './Login.vue'
 import Layout from './Layout.vue'
 import Index from './Index.vue' // 配送员管理
@@ -24,14 +23,8 @@ const routes = [
     name: 'Layout',
     component: Layout,
     meta: { requiresAuth: true },
-    redirect: '/dashboard',
+    redirect: '/delivery',
     children: [
-      {
-        path: 'dashboard',
-        name: 'Dashboard',
-        component: Dashboard,
-        meta: { title: '仪表盘' }
-      },
       {
         path: 'delivery',
         name: 'DeliveryManagement',

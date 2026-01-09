@@ -1,5 +1,5 @@
 // src/api/modules/product.js
-import request from '@/api'
+import request from './api.js'
 
 // 商品管理相关接口
 export default {
@@ -33,7 +33,7 @@ export default {
   // 更新商品
   updateProduct(id, data) {
     return request({
-      url: `/api/products/${id}/status`,
+      url: `/api/products/${id}`,
       method: 'put',
       data
     })

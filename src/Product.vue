@@ -217,9 +217,9 @@ const restaurantList = ref([
 
 // 搜索表单
 const searchForm = reactive({
-  name: '',
+  name: null,
   restaurant_id: null,
-  status: ''
+  status: null
 })
 
 // 分页配置
@@ -279,6 +279,7 @@ const fetchRestaurantList = async () => {
       page: 1,
       size: 100,
     })
+    
     if (response && response.data) {
       const apiData = response.data
       const formatRestaurantData = (restaurant) => ({
@@ -321,10 +322,28 @@ const fetchProductList = async () => {
       size: pagination.size,
       ...searchForm
     })
-    console.log(response);
+    console.log(response.data);
+    if (response.data && response.data.content) {
+      // 格式化商品数据
+      productList.value = response.data.content.map(product => ({
+        product_id: product.id,  // 使用实际返回的id字段
+        name: product.name,
+        restaurant_id: product.restaurantId || null,  // 数据中没有restaurantId，暂时设为null
+        restaurant_name: '',  // 暂时设为空字符串
+        price: product.price,
+        stock: product.stock,
+        description: product.description,
+        status: product.status,
+        created_at: product.createdAt ? new Date(product.createdAt).toLocaleString('zh-CN') : ''
+      }))
+      
+      // 更新分页信息
+      pagination.total = response.data.totalElements || 0
+    } else {
+      productList.value = []
+      pagination.total = 0
+    }
     
-    productList.value = response.data.data || []
-    pagination.total = response.data.total || 0
   } catch (error) {
     ElMessage.error('获取商品列表失败')
   } finally {
@@ -424,7 +443,6 @@ const handleSubmit = async () => {
       description: productForm.description,
       status: productForm.status
     }
-    console.log(submitData);
     
     if (productForm.product_id) {
       const reactive = await productApi.updateProduct(productForm.product_id, submitData)
