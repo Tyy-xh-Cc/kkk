@@ -1,4 +1,4 @@
-import request from './request.js'
+import request from '../request.js'
 
 // 优惠券管理相关接口
 export default {

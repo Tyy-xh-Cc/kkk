@@ -1,4 +1,4 @@
-import request from './request.js'
+import request from '../request.js'
 
 // 公共接口
 export default {

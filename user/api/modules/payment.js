@@ -1,4 +1,4 @@
-import request from './request.js'
+import request from '../request.js'
 
 // 支付管理相关接口
 export default {

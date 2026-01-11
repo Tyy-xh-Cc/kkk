@@ -1,4 +1,4 @@
-import request from './request.js'
+import request from '../request.js'
 
 // 用户管理相关接口
 export default {
