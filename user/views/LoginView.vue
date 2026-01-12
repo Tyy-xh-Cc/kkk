@@ -11,7 +11,7 @@
               <path d="M2 17L12 22L22 17" stroke="#FF6B00" stroke-width="2"/>
               <path d="M2 12L12 17L22 12" stroke="#FF6B00" stroke-width="2"/>
             </svg>
-            <span class="logo-text">FoodHub</span>
+            <span class="logo-text">T  Y  Y</span>
           </div>
           <h1>欢迎回来</h1>
           <p class="subtitle">登录后即可下单享受美食</p>
@@ -203,14 +203,14 @@
                   class="social-btn alipay"
                   @click="alipayLogin"
                 >
-                  <span class="alipay-icon">支</span>
+                  <span class="alipay-icon"></span>
                   <span>支付宝</span>
                 </el-button>
                 <el-button 
                   class="social-btn qq"
                   @click="qqLogin"
                 >
-                  <span class="qq-icon">Q</span>
+                  <span class="qq-icon"></span>
                   <span>QQ</span>
                 </el-button>
               </div>

@@ -221,11 +221,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import { ArrowLeft, ArrowRight, CircleCheck } from '@element-plus/icons-vue'
-import AddressSelector from '@/components/AddressSelector.vue'
-import InvoiceSelector from '@/components/InvoiceSelector.vue'
-import api from '@/api'
+import AddressSelector from './Selector/AddressSelector.vue'
+import InvoiceSelector from './Selector/InvoiceSelector.vue'
+import api from '../api/index'
 
 const router = useRouter()
 

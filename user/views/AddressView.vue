@@ -161,7 +161,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ArrowLeft, Location, Plus, Loading } from '@element-plus/icons-vue'
-import api from '@/api'
+import api from '../api/index'
 
 const router = useRouter()
 

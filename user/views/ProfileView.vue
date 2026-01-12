@@ -9,7 +9,7 @@
     <div class="user-info">
       <div class="user-header">
         <div class="avatar-section" @click="editAvatar">
-          <img :src="userInfo.avatar_url || defaultAvatar" class="avatar" />
+          <img :src="userInfo.avatarUrl || defaultAvatar" class="avatar" />
           <div class="edit-avatar">
             <el-icon><Camera /></el-icon>
           </div>
@@ -20,9 +20,6 @@
           <div class="user-level">
             <el-tag size="small" type="warning">普通会员</el-tag>
           </div>
-        </div>
-        <div class="user-actions">
-          <el-button type="text" @click="editProfile">编辑资料</el-button>
         </div>
       </div>
       
@@ -201,11 +198,6 @@
           />
         </el-form-item>
       </el-form>
-      
-      <template #footer>
-        <el-button @click="showEditDialog = false">取消</el-button>
-        <el-button type="primary" @click="saveProfile">保存</el-button>
-      </template>
     </el-dialog>
   </div>
 </template>
@@ -231,12 +223,14 @@ const editForm = ref({
   username: '',
   email: ''
 })
-const defaultAvatar = 'https://via.placeholder.com/80x80?text=用户'
+const defaultAvatar = ''
 
 // API: 获取用户信息
 const getUserInfo = async () => {
   try {
     const res = await api.user.getUserInfo()
+    console.log(res.data);
+    
     if (res.data) {
       userInfo.value = res.data
       editForm.value = {
@@ -279,12 +273,6 @@ const updateUserInfo = async () => {
 const editAvatar = () => {
   ElMessage.info('头像上传功能开发中')
 }
-
-// 编辑资料
-const editProfile = () => {
-  showEditDialog.value = true
-}
-
 // 保存资料
 const saveProfile = async () => {
   await updateUserInfo()

@@ -5,7 +5,7 @@ export default {
   // 获取餐厅列表（支持搜索、筛选、排序）
   getRestaurantList(params) {
     return request({
-      url: '/api/restaurants',
+      url: '/api/paged/restaurants',
       method:'get',
       params
     })

@@ -21,14 +21,14 @@
 
     <!-- 轮播图 -->
     <div class="banner-section" v-if="banners.length > 0">
-      <el-carousel height="200px" class="banner">
+      <el-carousel height="400px" class="banner">
         <el-carousel-item v-for="item in banners" :key="item.id">
-          <img :src="item.image" class="banner-image" @click="handleBannerClick(item)" />
+          <img :src="item.imageUrl" class="banner-image" @click="handleBannerClick(item)" />
         </el-carousel-item>
       </el-carousel>
     </div>
 
-    <!-- 快捷入口 -->
+    <!-- 快捷入口
     <div class="quick-entries">
       <div v-for="entry in quickEntries" :key="entry.id" class="entry-item" @click="handleQuickEntry(entry)">
         <div class="entry-icon">
@@ -36,7 +36,7 @@
         </div>
         <span>{{ entry.name }}</span>
       </div>
-    </div>
+    </div> -->
 
     <!-- 筛选栏 -->
     <div class="filter-bar">
@@ -64,14 +64,17 @@
     <div class="restaurant-list">
       <div 
         v-for="restaurant in restaurants" 
-        :key="restaurant.restaurant_id" 
+        :key="restaurant.restaurantId" 
         class="restaurant-card"
-        @click="goToRestaurant(restaurant.restaurant_id)"
+        @click="goToRestaurant(restaurant.restaurantId)"
       >
         <div class="restaurant-image">
-          <img :src="restaurant.cover_url || defaultImage" />
+          <img :src="restaurant.coverUrl || defaultImage" />
           <div class="restaurant-tag" v-if="restaurant.status === 'busy'">
             忙碌
+          </div>
+          <div class="restaurant-tag" v-else-if="restaurant.status === 'closed'">
+            打烊
           </div>
           <div class="restaurant-promotion" v-if="restaurant.promotion">
             {{ restaurant.promotion }}
@@ -88,13 +91,13 @@
                 :colors="['#99A9BF', '#F7BA2A', '#FF9900']"
               />
               <span class="rating-text">{{ restaurant.rating }}</span>
-              <span class="order-count">月售{{ restaurant.total_orders || 0 }}</span>
+              <span class="order-count">月售{{ restaurant.totalOrders || 0 }}</span>
             </div>
           </div>
           <div class="delivery-info">
-            <span class="delivery-fee">¥{{ restaurant.delivery_fee || 0 }}配送费</span>
-            <span class="min-order">¥{{ restaurant.min_order_amount || 0 }}起送</span>
-            <span class="delivery-time">{{ restaurant.estimated_delivery_time || 30 }}分钟</span>
+            <span class="delivery-fee">¥{{ restaurant.deliveryFee || 0 }}配送费</span>
+            <span class="min-order">¥{{ restaurant.minOrderAmount || 0 }}起送</span>
+            <span class="delivery-time">{{ restaurant.estimatedDeliveryTime || 30 }}分钟</span>
           </div>
           <div class="restaurant-activity" v-if="restaurant.activity">
             <el-tag size="small" type="info">{{ restaurant.activity }}</el-tag>
@@ -146,13 +149,15 @@ const loading = ref(false)
 const hasMore = ref(true)
 const page = ref(1)
 const pageSize = 10
-const defaultImage = 'https://tse4-mm.cn.bing.net/th/id/OIP-C.rDTdPvUueEYijUT_CPKjggHaFp?w=253&h=193&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3'
+const defaultImage = ''
 
 // 获取轮播图
 const getBanners = async () => {
   try {
     const res = await api.common.getBanners()
-    banners.value = res.data || []
+    console.log(res.data.userInfo);
+    
+    banners.value = res.data.userInfo || []
   } catch (error) {
     console.error('获取轮播图失败:', error)
   }
@@ -161,11 +166,6 @@ const getBanners = async () => {
 // 获取快捷入口
 const getQuickEntries = () => {
   quickEntries.value = [
-    { id: 1, name: '美食', icon: 'https://tse4-mm.cn.bing.net/th/id/OIP-C.rDTdPvUueEYijUT_CPKjggHaFp?w=253&h=193&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3', type: 'food' },
-    { id: 2, name: '超市', icon: 'https://tse4-mm.cn.bing.net/th/id/OIP-C.rDTdPvUueEYijUT_CPKjggHaFp?w=253&h=193&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3', type: 'market' },
-    { id: 3, name: '水果', icon: 'https://tse4-mm.cn.bing.net/th/id/OIP-C.rDTdPvUueEYijUT_CPKjggHaFp?w=253&h=193&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3', type: 'fruit' },
-    { id: 4, name: '下午茶', icon: 'https://tse4-mm.cn.bing.net/th/id/OIP-C.rDTdPvUueEYijUT_CPKjggHaFp?w=253&h=193&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3', type: 'tea' },
-    { id: 5, name: '夜宵', icon: 'https://tse4-mm.cn.bing.net/th/id/OIP-C.rDTdPvUueEYijUT_CPKjggHaFp?w=253&h=193&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3', type: 'night' },
   ]
 }
 
@@ -191,8 +191,8 @@ const getRestaurants = async () => {
       })
       console.log(res.data);
       
-      restaurants.value = res.data || []
-      hasMore.value = false
+      restaurants.value = res.data?.content || []
+      hasMore.value = res.data?.totalPages > page.value
     } else if (activeFilter.value === 'distance') {
       // 获取附近餐厅
       const location = await getCurrentLocation()
@@ -202,13 +202,15 @@ const getRestaurants = async () => {
         longitude: location.longitude,
         distance: 5 // 5公里范围内
       })
-      restaurants.value = res.data?.list || []
-      hasMore.value = res.data?.has_more || false
+      restaurants.value = res.data?.content || []
+      hasMore.value = res.data?.totalPages > page.value
     } else {
       // 普通列表
       res = await api.restaurant.getRestaurantList(params)
-      restaurants.value = res.data?.list || []
-      hasMore.value = res.data?.has_more || false
+      console.log(res.data);
+      
+      restaurants.value = res.data?.content || []
+      hasMore.value = res.data?.totalPages > page.value
     }
   } catch (error) {
     ElMessage.error('获取餐厅列表失败')
@@ -285,11 +287,11 @@ const selectLocation = () => {
 
 // 处理轮播图点击
 const handleBannerClick = (banner) => {
-  if (banner.link) {
-    if (banner.link.startsWith('/')) {
-      router.push(banner.link)
+  if (banner.linkUrl) {
+    if (banner.linkUrl.startsWith('/')) {
+      router.push(banner.linkUrl)
     } else {
-      window.open(banner.link, '_blank')
+      window.open(banner.linkUrl, '_blank')
     }
   }
 }
@@ -595,24 +597,5 @@ onUnmounted(() => {
   align-items: center;
   padding: 60px 20px;
   text-align: center;
-}
-
-.empty-image {
-  width: 150px;
-  height: 150px;
-  margin-bottom: 20px;
-  opacity: 0.6;
-}
-
-.empty-text {
-  margin: 0 0 8px 0;
-  font-size: 16px;
-  color: #999;
-}
-
-.empty-subtext {
-  margin: 0;
-  font-size: 14px;
-  color: #ccc;
 }
 </style>

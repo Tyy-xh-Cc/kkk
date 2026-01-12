@@ -187,13 +187,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { ArrowLeft, Star, StarFilled, Share, Location, Clock, Plus } from '@element-plus/icons-vue'
-import CartBottom from '@/components/CartBottom.vue'
-import ProductDialog from '@/components/ProductDialog.vue'
-import api from '@/api'
+import CartBottom from './CartBottom.vue'
+import ProductDialog from './Dialog/ProductDialog.vue'
+import api from '../api/index'
 
 const route = useRoute()
 const router = useRouter()

@@ -27,7 +27,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { ShoppingCart } from '@element-plus/icons-vue'
-import api from '@/api'
+import api from '../api/index'
 
 const props = defineProps({
   restaurantId: {

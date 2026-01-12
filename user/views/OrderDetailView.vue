@@ -270,10 +270,10 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
   ArrowLeft, Check, Food, Van, Location, Phone, ArrowRight 
 } from '@element-plus/icons-vue'
-import PaymentDialog from '@/components/PaymentDialog.vue'
-import RatingDialog from '@/components/RatingDialog.vue'
-import DeliveryRatingDialog from '@/components/DeliveryRatingDialog.vue'
-import api from '@/api'
+import PaymentDialog from './Dialog/PaymentDialog.vue'
+import RatingDialog from './Dialog/RatingDialog.vue'
+import DeliveryRatingDialog from './Dialog/DeliveryRatingDialog.vue'
+import api from '../api/index'
 
 const route = useRoute()
 const router = useRouter()
