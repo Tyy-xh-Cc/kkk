@@ -6,7 +6,7 @@ export default {
   getRestaurantList(params) {
     return request({
       url: '/api/restaurants',
-      method: 'get',
+      method:'get',
       params
     })
   },

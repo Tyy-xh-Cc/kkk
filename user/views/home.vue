@@ -116,7 +116,6 @@
 
     <!-- 空状态 -->
     <div class="empty-state" v-if="!loading && restaurants.length === 0">
-      <img src="https://tse4-mm.cn.bing.net/th/id/OIP-C.rDTdPvUueEYijUT_CPKjggHaFp?w=253&h=193&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3" class="empty-image" />
       <p class="empty-text">暂无餐厅</p>
       <p class="empty-subtext">换个筛选条件试试吧</p>
     </div>
@@ -176,7 +175,7 @@ const getRestaurants = async () => {
   try {
     const params = {
       page: page.value,
-      page_size: pageSize,
+      size: pageSize,
       keyword: searchKeyword.value || undefined,
       sort_by: getSortByValue(activeFilter.value),
       status: activeFilter.value === 'fast' ? 'open' : undefined,
@@ -186,7 +185,12 @@ const getRestaurants = async () => {
     let res
     if (activeFilter.value === 'recommend') {
       // 获取推荐餐厅
-      res = await api.restaurant.getRecommendedRestaurants()
+      res = await api.restaurant.getRecommendedRestaurants({
+        page: 1,
+        size: 10,
+      })
+      console.log(res.data);
+      
       restaurants.value = res.data || []
       hasMore.value = false
     } else if (activeFilter.value === 'distance') {

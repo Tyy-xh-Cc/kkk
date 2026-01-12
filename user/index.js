@@ -19,7 +19,7 @@ const routes = [
     path: '/login',
     name: 'Login',
     component: Login,
-    meta: { guestOnly: true } // 只有未登录用户才能访问
+    meta: { } // 只有未登录用户才能访问
   },
   {
     path: '/register',
