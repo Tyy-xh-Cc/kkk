@@ -27,6 +27,6 @@ app.use(router)
 app.mount('#app')
 
 // 全局错误处理
-app.config.errorHandler = (err, vm, info) => {
+app.config.errorHandler = (err, _vm, info) => {
   console.error('Vue错误:', err, info)
 }

@@ -12,8 +12,6 @@ import Address from './views/AddressView.vue'
 import Checkout from './views/CheckoutView.vue'
 import OrderDetail from './views/OrderDetailView.vue'
 import Restaurant from './views/RestaurantView.vue'
-// 可以根据需要添加404页面
-// import NotFound from './views/NotFoundView.vue'
 
 const routes = [ 
   { 
@@ -25,74 +23,67 @@ const routes = [
     path: '/login', 
     name: 'Login', 
     component: Login, 
-    meta: { guestOnly: true } // 只有未登录用户才能访问 
+    meta: {  } 
   }, 
   { 
     path: '/register', 
     name: 'Register', 
     component: Register, 
-    meta: { guestOnly: true } // 只有未登录用户才能访问 
+    meta: {  } 
   }, 
   { 
     path: '/forgot-password', 
     name: 'ForgotPassword', 
     component: ForgotPassword, 
-    meta: { guestOnly: true } // 只有未登录用户才能访问 
+    meta: {  }  
   }, 
   { 
     path: '/welcome', 
     name: 'Welcome', 
     component: Welcome, 
-    meta: { requiresAuth: true } // 需要登录才能访问 
+    meta: { requiresAuth: true } 
   }, 
   { 
     path: '/cart', 
     name: 'Cart', 
     component: Cart, 
-    meta: { requiresAuth: true } // 需要登录才能访问 
+    meta: { requiresAuth: true } 
   }, 
   { 
     path: '/orders', 
     name: 'Orders', 
     component: Orders, 
-    meta: { requiresAuth: true } // 需要登录才能访问 
+    meta: { requiresAuth: true } 
   }, 
   { 
     path: '/profile', 
     name: 'Profile', 
     component: Profile, 
-    meta: { requiresAuth: true } // 需要登录才能访问 
+    meta: { requiresAuth: true } 
   },
   { 
-    path: '/address', 
+    path: '/addresses', 
     name: 'Address', 
     component: Address, 
-    meta: { requiresAuth: true } // 需要登录才能访问 
+    meta: { requiresAuth: true } 
   },
   { 
     path: '/checkout', 
     name: 'Checkout', 
     component: Checkout, 
-    meta: { requiresAuth: true } // 需要登录才能访问 
+    meta: { requiresAuth: true } 
   },
   { 
     path: '/order/:id', 
     name: 'OrderDetail', 
     component: OrderDetail, 
-    meta: { requiresAuth: true } // 需要登录才能访问 
+    meta: { requiresAuth: true } 
   },
   { 
     path: '/restaurant/:id', 
     name: 'Restaurant', 
     component: Restaurant 
-    // 餐厅详情页可能不需要登录即可访问，根据实际需求调整
   },
-  // 404页面路由（如果需要）
-  // {
-  //   path: '/:pathMatch(.*)*',
-  //   name: 'NotFound',
-  //   component: NotFound
-  // }
 ] 
 
 const router = createRouter({ 

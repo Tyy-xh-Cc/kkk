@@ -1,10 +1,11 @@
 <template>
     <el-dialog
-      v-model="visible"
+      :model-value="visible"
       title="评价订单"
       width="90%"
       :close-on-click-modal="false"
       :close-on-press-escape="false"
+      @update:model-value="$emit('update:visible', $event)"
       class="rating-dialog"
     >
       <!-- 整体评分 -->

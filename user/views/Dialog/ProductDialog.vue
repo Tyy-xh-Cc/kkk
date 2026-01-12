@@ -1,10 +1,11 @@
 <template>
     <el-dialog
-      v-model="visible"
+      :model-value="visible"
       :title="product.name"
       width="90%"
       :close-on-click-modal="false"
       :close-on-press-escape="false"
+      @update:model-value="$emit('update:visible', $event)"
       class="product-dialog"
     >
       <div class="product-detail">

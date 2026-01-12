@@ -6,15 +6,6 @@
         <el-icon><ArrowLeft /></el-icon>
       </div>
       <h1>地址管理</h1>
-      <div class="header-actions">
-        <el-button 
-          type="text" 
-          @click="addAddress"
-          v-if="addresses.length > 0"
-        >
-          新增
-        </el-button>
-      </div>
     </div>
 
     <!-- 地址列表 -->
@@ -162,6 +153,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ArrowLeft, Location, Plus, Loading } from '@element-plus/icons-vue'
 import api from '../api/index'
+import { regionData } from 'element-china-area-data'
 
 const router = useRouter()
 
@@ -201,6 +193,25 @@ const addressRules = {
 const areaOptions = ref([])
 const loading = ref(false)
 
+// API: 获取省市区数据（使用china-area-data库）
+const getRegions = async () => {
+  try {
+    // 使用element-china-area-data库获取完整的省市区数据
+    // 这个库专门为Element UI设计，数据格式完全兼容el-cascader
+    areaOptions.value =  regionData
+    
+    if (!areaOptions.value || !Array.isArray(areaOptions.value)) {
+      throw new Error('无法获取有效的省市区数据')
+    }
+    
+    console.log('使用element-china-area-data库获取的省市区数据:', areaOptions.value)
+    
+  } catch (error) {
+    console.error('获取地区数据失败:', error)
+    ElMessage.error('获取地区数据失败: ' + error.message)
+  }
+}
+
 // API: 获取地址列表
 const getAddresses = async () => {
   loading.value = true
@@ -212,25 +223,6 @@ const getAddresses = async () => {
     console.error('获取地址列表失败:', error)
   } finally {
     loading.value = false
-  }
-}
-
-// API: 获取省市区数据
-const getRegions = async () => {
-  try {
-    // 获取省份
-    const provinceRes = await api.address.getRegionList(0)
-    const provinces = provinceRes.data || []
-    
-    areaOptions.value = provinces.map(province => ({
-      value: province.id,
-      label: province.name,
-      children: []
-    }))
-    
-    // 这里可以根据需要加载市、区数据
-  } catch (error) {
-    console.error('获取地区数据失败:', error)
   }
 }
 

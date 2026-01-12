@@ -1,130 +1,112 @@
 <template>
   <div class="home-page">
-    <!-- 顶部搜索栏 -->
-    <div class="search-bar">
-      <div class="location" @click="selectLocation">
-        <el-icon><Location /></el-icon>
-        <span>{{ currentLocation }}</span>
-        <el-icon><ArrowDown /></el-icon>
-      </div>
-      <el-input
-        v-model="searchKeyword"
-        placeholder="搜索餐厅或菜品"
-        class="search-input"
-        @keyup.enter="searchRestaurants"
-      >
-        <template #prefix>
-          <el-icon><Search /></el-icon>
-        </template>
-      </el-input>
-    </div>
-
-    <!-- 轮播图 -->
-    <div class="banner-section" v-if="banners.length > 0">
-      <el-carousel height="400px" class="banner">
-        <el-carousel-item v-for="item in banners" :key="item.id">
-          <img :src="item.imageUrl" class="banner-image" @click="handleBannerClick(item)" />
-        </el-carousel-item>
-      </el-carousel>
-    </div>
-
-    <!-- 快捷入口
-    <div class="quick-entries">
-      <div v-for="entry in quickEntries" :key="entry.id" class="entry-item" @click="handleQuickEntry(entry)">
-        <div class="entry-icon">
-          <img :src="entry.icon" />
+    <!-- 侧边导航栏 -->
+    <NavSide />
+    
+    <!-- 主内容区 -->
+    <div class="main-content">
+      <!-- 顶部搜索栏 -->
+      <div class="search-bar">
+        <div class="location" @click="selectLocation">
+          <el-icon><Location /></el-icon>
+          <span>{{ currentLocation }}</span>
+          <el-icon><ArrowDown /></el-icon>
         </div>
-        <span>{{ entry.name }}</span>
+        <el-input
+          v-model="searchKeyword"
+          placeholder="搜索餐厅或菜品"
+          class="search-input"
+          @keyup.enter="searchRestaurants"
+        >
+          <template #prefix>
+            <el-icon><Search /></el-icon>
+          </template>
+        </el-input>
       </div>
-    </div> -->
 
-    <!-- 筛选栏 -->
-    <div class="filter-bar">
-      <div class="filter-item" :class="{ active: activeFilter === 'all' }" @click="changeFilter('all')">
-        全部
+      <!-- 轮播图 -->
+      <div class="banner-section" v-if="banners.length > 0">
+        <el-carousel height="200px" class="banner" indicator-position="outside">
+          <el-carousel-item v-for="item in banners" :key="item.id">
+            <img :src="item.imageUrl" class="banner-image" @click="handleBannerClick(item)" />
+          </el-carousel-item>
+        </el-carousel>
       </div>
-      <div class="filter-item" :class="{ active: activeFilter === 'fast' }" @click="changeFilter('fast')">
-        快送
-      </div>
-      <div class="filter-item" :class="{ active: activeFilter === 'rating' }" @click="changeFilter('rating')">
-        评分最高
-      </div>
-      <div class="filter-item" :class="{ active: activeFilter === 'cheap' }" @click="changeFilter('cheap')">
-        起送价最低
-      </div>
-      <div class="filter-item" :class="{ active: activeFilter === 'distance' }" @click="changeFilter('distance')">
-        距离最近
-      </div>
-      <div class="filter-item" :class="{ active: activeFilter === 'recommend' }" @click="changeFilter('recommend')">
-        推荐
-      </div>
-    </div>
 
-    <!-- 餐厅列表 -->
-    <div class="restaurant-list">
-      <div 
-        v-for="restaurant in restaurants" 
-        :key="restaurant.restaurantId" 
-        class="restaurant-card"
-        @click="goToRestaurant(restaurant.restaurantId)"
-      >
-        <div class="restaurant-image">
-          <img :src="restaurant.coverUrl || defaultImage" />
-          <div class="restaurant-tag" v-if="restaurant.status === 'busy'">
-            忙碌
-          </div>
-          <div class="restaurant-tag" v-else-if="restaurant.status === 'closed'">
-            打烊
-          </div>
-          <div class="restaurant-promotion" v-if="restaurant.promotion">
-            {{ restaurant.promotion }}
-          </div>
+      <!-- 筛选栏 -->
+      <div class="filter-bar">
+        <div class="filter-item" :class="{ active: activeFilter === 'all' }" @click="changeFilter('all')">
+          全部
         </div>
-        <div class="restaurant-info">
-          <h3 class="name">{{ restaurant.name }}</h3>
-          <div class="rating-info">
-            <div class="rating">
-              <el-rate 
-                v-model="restaurant.rating" 
-                disabled 
-                size="small" 
-                :colors="['#99A9BF', '#F7BA2A', '#FF9900']"
-              />
-              <span class="rating-text">{{ restaurant.rating }}</span>
-              <span class="order-count">月售{{ restaurant.totalOrders || 0 }}</span>
+
+        <div class="filter-item" :class="{ active: activeFilter === 'rating' }" @click="changeFilter('rating')">
+          评分最高
+        </div>
+      </div>
+
+      <!-- 餐厅列表 -->
+      <div class="restaurant-list">
+        <div 
+          v-for="restaurant in restaurants" 
+          :key="restaurant.restaurantId" 
+          class="restaurant-card"
+          @click="goToRestaurant(restaurant.restaurantId)"
+        >
+          <div class="restaurant-image">
+            <img :src="restaurant.coverUrl || defaultImage" />
+            <div class="restaurant-tag busy" v-if="restaurant.status === 'busy'">
+              忙碌
+            </div>
+            <div class="restaurant-tag closed" v-else-if="restaurant.status === 'closed'">
+              打烊
+            </div>
+            <div class="restaurant-promotion" v-if="restaurant.promotion">
+              {{ restaurant.promotion }}
             </div>
           </div>
-          <div class="delivery-info">
-            <span class="delivery-fee">¥{{ restaurant.deliveryFee || 0 }}配送费</span>
-            <span class="min-order">¥{{ restaurant.minOrderAmount || 0 }}起送</span>
-            <span class="delivery-time">{{ restaurant.estimatedDeliveryTime || 30 }}分钟</span>
-          </div>
-          <div class="restaurant-activity" v-if="restaurant.activity">
-            <el-tag size="small" type="info">{{ restaurant.activity }}</el-tag>
+          <div class="restaurant-info">
+            <h3 class="name">{{ restaurant.name }}</h3>
+            <div class="rating-info">
+              <div class="rating">
+                <el-rate 
+                  v-model="restaurant.rating" 
+                  disabled 
+                  size="small" 
+                  :colors="['#99A9BF', '#F7BA2A', '#1989fa']"
+                />
+                <span class="rating-text">{{ restaurant.rating }}</span>
+                <span class="order-count">月售{{ restaurant.totalOrders || 0 }}</span>
+              </div>
+            </div>
+            <div class="delivery-info">
+              <span class="delivery-fee">¥{{ restaurant.deliveryFee || 0 }}配送费</span>
+              <span class="min-order">¥{{ restaurant.minOrderAmount || 0 }}起送</span>
+              <span class="delivery-time">{{ restaurant.estimatedDeliveryTime || 30 }}分钟</span>
+            </div>
+            <div class="restaurant-activity" v-if="restaurant.activity">
+              <el-tag size="small" type="primary">{{ restaurant.activity }}</el-tag>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- 加载更多 -->
-    <div class="load-more" v-if="hasMore && !loading">
-      <el-button @click="loadMore">加载更多</el-button>
-    </div>
+      <!-- 加载更多 -->
+      <div class="load-more" v-if="hasMore && !loading">
+        <el-button type="primary" @click="loadMore">加载更多</el-button>
+      </div>
 
-    <!-- 加载中 -->
-    <div class="loading" v-if="loading">
-      <el-icon class="loading-icon"><Loading /></el-icon>
-      <span>加载中...</span>
-    </div>
+      <!-- 加载中 -->
+      <div class="loading" v-if="loading">
+        <el-icon class="loading-icon"><Loading /></el-icon>
+        <span>加载中...</span>
+      </div>
 
-    <!-- 空状态 -->
-    <div class="empty-state" v-if="!loading && restaurants.length === 0">
-      <p class="empty-text">暂无餐厅</p>
-      <p class="empty-subtext">换个筛选条件试试吧</p>
+      <!-- 空状态 -->
+      <div class="empty-state" v-if="!loading && restaurants.length === 0">
+        <p class="empty-text">暂无餐厅</p>
+        <p class="empty-subtext">换个筛选条件试试吧</p>
+      </div>
     </div>
-
-    <!-- 底部导航 -->
-    <nav-bottom />
   </div>
 </template>
 
@@ -133,7 +115,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Location, ArrowDown, Search, Loading } from '@element-plus/icons-vue'
-import NavBottom from './NavBottom.vue'
+import NavSide from './NavSide.vue'
 import api from '../api/index.js'
 
 const router = useRouter()
@@ -149,7 +131,7 @@ const loading = ref(false)
 const hasMore = ref(true)
 const page = ref(1)
 const pageSize = 10
-const defaultImage = ''
+const defaultImage = 'https://via.placeholder.com/100x100?text=Restaurant'
 
 // 获取轮播图
 const getBanners = async () => {
@@ -181,37 +163,13 @@ const getRestaurants = async () => {
       status: activeFilter.value === 'fast' ? 'open' : undefined,
       min_order_amount: activeFilter.value === 'cheap' ? 0 : undefined,
     }
-
+    console.log(params);
+    
     let res
-    if (activeFilter.value === 'recommend') {
-      // 获取推荐餐厅
-      res = await api.restaurant.getRecommendedRestaurants({
-        page: 1,
-        size: 10,
-      })
-      console.log(res.data);
-      
-      restaurants.value = res.data?.content || []
-      hasMore.value = res.data?.totalPages > page.value
-    } else if (activeFilter.value === 'distance') {
-      // 获取附近餐厅
-      const location = await getCurrentLocation()
-      res = await api.restaurant.getNearbyRestaurants({
-        ...params,
-        latitude: location.latitude,
-        longitude: location.longitude,
-        distance: 5 // 5公里范围内
-      })
-      restaurants.value = res.data?.content || []
-      hasMore.value = res.data?.totalPages > page.value
-    } else {
-      // 普通列表
-      res = await api.restaurant.getRestaurantList(params)
-      console.log(res.data);
-      
-      restaurants.value = res.data?.content || []
-      hasMore.value = res.data?.totalPages > page.value
-    }
+     res = await api.restaurant.getRestaurantList(params)
+    console.log(res.data);
+    restaurants.value = res.data?.content || []
+    hasMore.value = res.data?.totalPages > page.value
   } catch (error) {
     ElMessage.error('获取餐厅列表失败')
     console.error('获取餐厅列表失败:', error)
@@ -220,15 +178,15 @@ const getRestaurants = async () => {
   }
 }
 
-// 获取排序参数
+// 获取排序参数 - 修改为匹配后端的字段名
 const getSortByValue = (filter) => {
   const map = {
-    'rating': 'rating_desc',
-    'cheap': 'min_order_asc',
-    'fast': 'delivery_time_asc',
-    'default': 'created_at_desc'
+    'rating': 'rating',  
+    'cheap': 'price',    
+    'fast': 'orders',  
+    'all': undefined     
   }
-  return map[filter] || map['default']
+  return map[filter]
 }
 
 // 获取当前位置
@@ -334,26 +292,35 @@ onUnmounted(() => {
 
 <style scoped>
 .home-page {
+  display: flex;
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.main-content {
+  flex: 1;
+  padding-left: 240px; /* 为侧边导航栏留出空间 */
   padding-bottom: 60px;
 }
 
 .search-bar {
   display: flex;
   align-items: center;
-  padding: 10px 15px;
+  padding: 15px 20px;
   background: #ffffff;
   border-bottom: 1px solid #f0f0f0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .location {
   display: flex;
   align-items: center;
-  margin-right: 15px;
+  margin-right: 20px;
   font-size: 14px;
   color: #333;
   cursor: pointer;
   white-space: nowrap;
-  max-width: 80px;
+  max-width: 100px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -365,12 +332,14 @@ onUnmounted(() => {
 
 .search-input {
   flex: 1;
+  max-width: 500px;
 }
 
 .banner-section {
-  margin: 10px;
-  border-radius: 8px;
+  margin: 15px;
+  border-radius: 12px;
   overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
 .banner-image {
@@ -380,47 +349,11 @@ onUnmounted(() => {
   cursor: pointer;
 }
 
-.quick-entries {
-  display: flex;
-  justify-content: space-around;
-  padding: 20px 0;
-  background: #ffffff;
-  margin: 10px;
-  border-radius: 8px;
-}
-
-.entry-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  cursor: pointer;
-}
-
-.entry-icon {
-  width: 50px;
-  height: 50px;
-  margin-bottom: 8px;
-  border-radius: 50%;
-  overflow: hidden;
-}
-
-.entry-icon img {
-  width: 100%;
-  height: 100%;
-}
-
-.entry-item span {
-  font-size: 12px;
-  color: #666;
-}
-
 .filter-bar {
   display: flex;
   overflow-x: auto;
-  padding: 10px;
-  background: #ffffff;
-  margin: 10px;
-  border-radius: 8px;
+  padding: 0 15px;
+  margin-bottom: 15px;
   white-space: nowrap;
 }
 
@@ -429,65 +362,86 @@ onUnmounted(() => {
 }
 
 .filter-item {
-  padding: 6px 16px;
-  margin-right: 10px;
+  padding: 8px 18px;
+  margin-right: 12px;
   font-size: 14px;
   color: #666;
-  background: #f5f5f5;
-  border-radius: 16px;
+  background: #ffffff;
+  border-radius: 20px;
   cursor: pointer;
   flex-shrink: 0;
+  transition: all 0.3s;
+  border: 1px solid #f0f0f0;
+}
+
+.filter-item:hover {
+  background: #f8f9fa;
 }
 
 .filter-item.active {
-  color: #ff6b00;
-  background: #fff0e6;
+  color: #1989fa;
+  background: #eaf5ff;
+  border-color: #1989fa;
 }
 
 .restaurant-list {
-  padding: 0 10px;
+  padding: 0 15px;
 }
 
 .restaurant-card {
   display: flex;
-  padding: 15px;
-  margin-bottom: 10px;
+  padding: 18px;
+  margin-bottom: 15px;
   background: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: all 0.3s;
 }
 
 .restaurant-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
 .restaurant-image {
   position: relative;
-  width: 100px;
-  height: 100px;
-  margin-right: 15px;
+  width: 120px;
+  height: 120px;
+  margin-right: 20px;
   flex-shrink: 0;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .restaurant-image img {
   width: 100%;
   height: 100%;
-  border-radius: 8px;
   object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.restaurant-card:hover .restaurant-image img {
+  transform: scale(1.05);
 }
 
 .restaurant-tag {
   position: absolute;
-  top: 5px;
-  left: 5px;
-  padding: 2px 6px;
-  background: rgba(255, 107, 0, 0.9);
+  top: 8px;
+  left: 8px;
+  padding: 4px 8px;
   color: #fff;
   font-size: 12px;
   border-radius: 4px;
+  font-weight: 500;
+}
+
+.restaurant-tag.busy {
+  background: rgba(255, 107, 0, 0.9);
+}
+
+.restaurant-tag.closed {
+  background: rgba(153, 153, 153, 0.9);
 }
 
 .restaurant-promotion {
@@ -495,13 +449,12 @@ onUnmounted(() => {
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 4px;
-  background: rgba(255, 107, 0, 0.9);
+  padding: 6px;
+  background: rgba(25, 137, 250, 0.9);
   color: #fff;
   font-size: 12px;
   text-align: center;
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
+  font-weight: 500;
 }
 
 .restaurant-info {
@@ -512,15 +465,15 @@ onUnmounted(() => {
 }
 
 .name {
-  margin: 0 0 8px 0;
-  font-size: 16px;
+  margin: 0 0 10px 0;
+  font-size: 18px;
   color: #333;
   font-weight: bold;
   line-height: 1.2;
 }
 
 .rating-info {
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .rating {
@@ -530,7 +483,7 @@ onUnmounted(() => {
 
 .rating-text {
   margin: 0 10px 0 5px;
-  color: #ff6b00;
+  color: #1989fa;
   font-weight: bold;
   font-size: 14px;
 }
@@ -546,25 +499,29 @@ onUnmounted(() => {
   margin-bottom: 8px;
   font-size: 12px;
   color: #666;
+  flex-wrap: wrap;
 }
 
 .delivery-fee,
 .min-order,
 .delivery-time {
-  margin-right: 10px;
+  margin-right: 15px;
   white-space: nowrap;
+  margin-bottom: 4px;
 }
 
 .restaurant-activity {
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 .restaurant-activity .el-tag {
   font-size: 11px;
+  margin-right: 6px;
+  margin-bottom: 4px;
 }
 
 .load-more {
-  padding: 20px;
+  padding: 25px;
   text-align: center;
 }
 
@@ -576,7 +533,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 40px 0;
+  padding: 50px 0;
   color: #999;
 }
 
@@ -584,6 +541,7 @@ onUnmounted(() => {
   font-size: 40px;
   margin-bottom: 10px;
   animation: rotate 2s linear infinite;
+  color: #1989fa;
 }
 
 @keyframes rotate {
@@ -595,7 +553,47 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 60px 20px;
+  padding: 80px 20px;
   text-align: center;
+  color: #999;
+}
+
+.empty-text {
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.empty-subtext {
+  font-size: 14px;
+  color: #ccc;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .main-content {
+    padding-left: 200px; /* 为侧边导航栏留出空间 */
+  }
+  
+  .search-bar {
+    padding: 12px 15px;
+  }
+  
+  .location {
+    max-width: 80px;
+  }
+  
+  .restaurant-image {
+    width: 100px;
+    height: 100px;
+    margin-right: 15px;
+  }
+  
+  .name {
+    font-size: 16px;
+  }
+  
+  .delivery-info {
+    font-size: 11px;
+  }
 }
 </style>

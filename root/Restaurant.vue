@@ -151,8 +151,7 @@ const currentDetail = ref(null)
 // 搜索表单
 const searchForm = reactive({
   name: '',
-  status: '',
-  rating: null
+  status: ''
 })
 
 // 分页配置
@@ -172,7 +171,7 @@ const restaurantForm = reactive({
   address: '',
   phone: '',
   opening_hours: '',
-  status: 'open'
+  status: ''
 })
 
 // 表单验证规则
@@ -210,7 +209,6 @@ const fetchRestaurantList = async () => {
     const response = await restaurantApi.getRestaurantList({
       page: pagination.current,
       size: pagination.size,
-      ...searchForm
     })
     if (response && response.data) {
       const apiData = response.data

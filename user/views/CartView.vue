@@ -1,5 +1,8 @@
 <template>
   <div class="cart-page">
+    <!-- 侧边导航栏 -->
+    <NavSide />
+
     <!-- 顶部标题 -->
     <div class="page-header">
       <div class="back-btn" @click="router.back()">
@@ -121,35 +124,6 @@
         </div>
       </div>
 
-      <!-- 优惠券 -->
-      <div class="coupon-section" v-if="availableCoupons.length > 0">
-        <div class="section-title">优惠券</div>
-        <div class="coupon-list">
-          <div 
-            v-for="coupon in availableCoupons" 
-            :key="coupon.coupon_id"
-            class="coupon-item"
-            @click="selectCoupon(coupon)"
-          >
-            <div class="coupon-info">
-              <div class="coupon-amount">¥{{ coupon.discount_amount }}</div>
-              <div class="coupon-condition">满{{ coupon.min_order_amount }}可用</div>
-              <div class="coupon-expiry">{{ formatExpiry(coupon.expiry_date) }}</div>
-            </div>
-            <div class="coupon-action">
-              <el-button 
-                type="primary" 
-                size="small"
-                @click.stop="useCoupon(coupon)"
-                :disabled="selectedCoupon?.coupon_id === coupon.coupon_id"
-              >
-                {{ selectedCoupon?.coupon_id === coupon.coupon_id ? '已使用' : '使用' }}
-              </el-button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- 价格明细 -->
       <div class="price-section">
         <div class="price-item">
@@ -159,10 +133,6 @@
         <div class="price-item">
           <span>配送费</span>
           <span>¥{{ deliveryFee.toFixed(2) }}</span>
-        </div>
-        <div class="price-item" v-if="selectedCoupon">
-          <span>优惠券</span>
-          <span class="discount">-¥{{ selectedCoupon.discount_amount.toFixed(2) }}</span>
         </div>
         <div class="price-item total">
           <span>实付</span>
@@ -189,12 +159,6 @@
       <div class="checkout-info">
         <div class="checkout-price">
           <span class="total">¥{{ finalAmount.toFixed(2) }}</span>
-          <span class="original" v-if="selectedCoupon">
-            原价¥{{ (subtotal + deliveryFee).toFixed(2) }}
-          </span>
-        </div>
-        <div class="checkout-amount" v-if="selectedCoupon">
-          已优惠¥{{ selectedCoupon.discount_amount.toFixed(2) }}
         </div>
       </div>
       <el-button 
@@ -224,15 +188,13 @@ import {
   Minus, Plus, Delete, Loading 
 } from '@element-plus/icons-vue'
 import api from '../api/index.js'
-
+import NavSide from './NavSide.vue'
 const router = useRouter()
 
 // 数据定义
 const cartItems = ref([])
 const restaurantInfo = ref(null)
 const selectedItems = ref([])
-const availableCoupons = ref([])
-const selectedCoupon = ref(null)
 const remark = ref('')
 const loading = ref(false)
 const defaultProductImage = 'https://via.placeholder.com/100x100?text=Product'
@@ -267,9 +229,7 @@ const selectedTotal = computed(() => {
 })
 
 const finalAmount = computed(() => {
-  const baseAmount = subtotal.value + deliveryFee.value
-  const discount = selectedCoupon.value?.discount_amount || 0
-  return Math.max(baseAmount - discount, 0)
+  return subtotal.value + deliveryFee.value
 })
 
 const checkoutButtonText = computed(() => {
@@ -296,28 +256,12 @@ const getCartItems = async () => {
       if (cartItems.value.length > 0) {
         selectedItems.value = cartItems.value.map(item => item.cart_item_id)
       }
-      
-      // 获取可用优惠券
-      getAvailableCoupons()
     }
   } catch (error) {
     ElMessage.error('获取购物车失败')
     console.error('获取购物车失败:', error)
   } finally {
     loading.value = false
-  }
-}
-
-// API: 获取可用优惠券
-const getAvailableCoupons = async () => {
-  try {
-    const res = await api.coupon.getAvailableCoupons({
-      restaurant_id: restaurantInfo.value?.restaurant_id,
-      min_amount: subtotal.value
-    })
-    availableCoupons.value = res.data || []
-  } catch (error) {
-    console.error('获取优惠券失败:', error)
   }
 }
 
@@ -364,26 +308,11 @@ const clearCart = async () => {
     await api.cart.clearCart()
     cartItems.value = []
     selectedItems.value = []
-    selectedCoupon.value = null
     ElMessage.success('购物车已清空')
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error('清空失败')
     }
-  }
-}
-
-// API: 使用优惠券
-const useCoupon = async (coupon) => {
-  try {
-    if (selectedCoupon.value?.coupon_id === coupon.coupon_id) {
-      selectedCoupon.value = null
-    } else {
-      selectedCoupon.value = coupon
-    }
-  } catch (error) {
-    ElMessage.error('使用优惠券失败')
-    console.error('使用优惠券失败:', error)
   }
 }
 
@@ -429,18 +358,6 @@ const formatSpecifications = (specs) => {
   }
 }
 
-// 格式化过期时间
-const formatExpiry = (expiryDate) => {
-  if (!expiryDate) return ''
-  const date = new Date(expiryDate)
-  return date.toLocaleDateString('zh-CN')
-}
-
-// 选择优惠券
-const selectCoupon = (coupon) => {
-  selectedCoupon.value = selectedCoupon.value?.coupon_id === coupon.coupon_id ? null : coupon
-}
-
 // 去结算
 const goToCheckout = async () => {
   if (selectedItems.value.length === 0) {
@@ -457,12 +374,10 @@ const goToCheckout = async () => {
   const checkoutData = {
     items: selectedItemsList.value,
     restaurant: restaurantInfo.value,
-    coupon: selectedCoupon.value,
     remark: remark.value,
     amount: {
       subtotal: subtotal.value,
       deliveryFee: deliveryFee.value,
-      discount: selectedCoupon.value?.discount_amount || 0,
       total: finalAmount.value
     }
   }
@@ -633,7 +548,7 @@ onMounted(() => {
 }
 
 .item-select .el-icon[data-v-]:has(+ .circle-check) {
-  color: #ff6b00;
+  color: #1989fa;
 }
 
 .item-content {
@@ -675,7 +590,7 @@ onMounted(() => {
 
 .item-price {
   font-size: 14px;
-  color: #ff6b00;
+  color: #1989fa;
   font-weight: bold;
 }
 
@@ -706,7 +621,7 @@ onMounted(() => {
 
 .item-total {
   font-size: 16px;
-  color: #ff6b00;
+  color: #1989fa;
   font-weight: bold;
 }
 
@@ -742,7 +657,7 @@ onMounted(() => {
 }
 
 .select-all-left .el-icon[data-v-]:has(+ .circle-check) {
-  color: #ff6b00;
+  color: #1989fa;
 }
 
 .select-all-left span {
@@ -757,12 +672,11 @@ onMounted(() => {
 
 .total-price {
   font-size: 18px;
-  color: #ff6b00;
+  color: #1989fa;
   font-weight: bold;
   margin-left: 10px;
 }
 
-.coupon-section,
 .price-section,
 .remark-section {
   background: #ffffff;
@@ -776,54 +690,7 @@ onMounted(() => {
   font-weight: bold;
   margin-bottom: 15px;
   padding-left: 10px;
-  border-left: 4px solid #ff6b00;
-}
-
-.coupon-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.coupon-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px;
-  border: 1px solid #f0f0f0;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: border-color 0.3s;
-}
-
-.coupon-item:hover {
-  border-color: #ff6b00;
-}
-
-.coupon-info {
-  flex: 1;
-}
-
-.coupon-amount {
-  font-size: 18px;
-  color: #ff6b00;
-  font-weight: bold;
-  margin-bottom: 4px;
-}
-
-.coupon-condition {
-  font-size: 12px;
-  color: #999;
-  margin-bottom: 2px;
-}
-
-.coupon-expiry {
-  font-size: 11px;
-  color: #ccc;
-}
-
-.coupon-action .el-button {
-  min-width: 60px;
+  border-left: 4px solid #1989fa;
 }
 
 .price-item {
@@ -843,14 +710,6 @@ onMounted(() => {
   margin-top: 10px;
   font-size: 16px;
   font-weight: bold;
-}
-
-.discount {
-  color: #ff6b00;
-}
-
-.total-price {
-  color: #ff6b00;
 }
 
 .checkout-bar {
@@ -879,20 +738,14 @@ onMounted(() => {
 
 .checkout-price .total {
   font-size: 20px;
-  color: #ff6b00;
+  color: #1989fa;
   font-weight: bold;
-  margin-right: 10px;
-}
-
-.checkout-price .original {
-  font-size: 12px;
-  color: #999;
-  text-decoration: line-through;
+  margin-left: 10px;
 }
 
 .checkout-amount {
   font-size: 12px;
-  color: #ff6b00;
+  color: #1989fa;
 }
 
 .checkout-bar .el-button {
@@ -922,5 +775,12 @@ onMounted(() => {
 @keyframes rotate {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .main-content {
+    padding-left: 220px; /* 为侧边导航栏留出空间 */
+  }
 }
 </style>

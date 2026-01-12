@@ -1,10 +1,11 @@
 <template>
-    <el-dialog
-      v-model="visible"
+   <el-dialog
+      :model-value="visible"
       title="评价骑手"
       width="90%"
       :close-on-click-modal="false"
       :close-on-press-escape="false"
+      @update:model-value="$emit('update:visible', $event)"
       class="delivery-rating-dialog"
     >
       <!-- 骑手信息 -->
@@ -117,7 +118,7 @@
   <script setup>
   import { ref, onMounted } from 'vue'
   import { ElMessage } from 'element-plus'
-  import api from '@/api'
+  import api from '../../api/index'
   
   // Props
   const props = defineProps({

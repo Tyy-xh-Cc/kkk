@@ -1,10 +1,11 @@
 <template>
     <el-dialog
-      v-model="visible"
+      :model-value="visible"
       title="订单支付"
       width="90%"
       :close-on-click-modal="false"
       :close-on-press-escape="false"
+      @update:model-value="$emit('update:visible', $event)"
       class="payment-dialog"
     >
       <!-- 订单信息 -->
@@ -31,7 +32,7 @@
             <el-radio :label="method.id">
               <div class="method-content">
                 <div class="method-icon">
-                  {{ method.icon }}
+                  <el-icon><component :is="method.icon" /></el-icon>
                 </div>
                 <div class="method-info">
                   <div class="method-name">{{ method.name }}</div>
@@ -81,8 +82,8 @@
   <script setup>
   import { ref, computed } from 'vue'
   import { ElMessage } from 'element-plus'
-  import { Check, CreditCard, Wallet, Qrcode } from '@element-plus/icons-vue'
-  import api from '@/api'
+  import { Check, CreditCard, Wallet } from '@element-plus/icons-vue'
+  import api from '../../api/index'
   
   // Props
   const props = defineProps({
@@ -113,25 +114,25 @@
       id: 'alipay',
       name: '支付宝',
       description: '推荐使用支付宝App扫码支付',
-      icon: <Qrcode />
+      icon: Qrcode
     },
     {
       id: 'wechat',
       name: '微信支付',
       description: '推荐使用微信App扫码支付',
-      icon: <Qrcode />
+      icon: Qrcode
     },
     {
       id: 'credit_card',
       name: '银行卡支付',
       description: '支持国内外主要银行卡',
-      icon: <CreditCard />
+      icon: CreditCard
     },
     {
       id: 'wallet',
       name: '余额支付',
       description: '使用账户余额支付',
-      icon: <Wallet />
+      icon: Wallet
     }
   ])
   
