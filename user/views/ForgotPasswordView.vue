@@ -297,7 +297,7 @@ const sendForgotSmsCode = async () => {
       phone: step1Form.phone,
       type: 'forgot_password'
     })
-
+    console.log(res.data);
     if (res.code === 200) {
       ElMessage.success('验证码发送成功')
       // 开始倒计时
@@ -425,12 +425,33 @@ onMounted(() => {
 <style scoped>
 .forgot-password-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  background: linear-gradient(135deg, #e0f7fa 0%, #fce4ec 100%);
   display: flex;
-  flex-direction: column;
-  position: relative;
+  justify-content: center;
+  align-items: center;
+  padding: 0 20px;
 }
-
+.forgot-password-form {
+  width: 100%;
+  max-width: 400px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+.submit-btn {
+  width: 100%;
+  height: 48px;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff8c00 100%);
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  color: white;
+  margin-top: 16px;
+}
+.submit-btn:hover {
+  background: linear-gradient(135deg, #ff8c00 0%, #ff6b6b 100%);
+}
 .forgot-header {
   padding: 60px 20px 30px;
   text-align: center;

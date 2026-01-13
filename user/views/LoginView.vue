@@ -162,13 +162,6 @@
                   </el-input>
                 </div>
               </el-form-item>
-
-              <div class="form-options">
-                <el-checkbox v-model="rememberMe" label="记住我" />
-                <el-button type="text" @click="forgotPassword" class="forgot-password">
-                  忘记密码？
-                </el-button>
-              </div>
             </div>
 
             <!-- 登录按钮 -->
@@ -188,34 +181,6 @@
             <div class="divider">
               <span class="divider-text"></span>
             </div>
-
-            <!-- 第三方登录 -->
-            <div class="social-login">
-              <div class="social-buttons">
-                <el-button 
-                  class="social-btn wechat"
-                  @click="wechatLogin"
-                >
-                  <el-icon><ChatDotRound /></el-icon>
-                  <span>微信</span>
-                </el-button>
-                <el-button 
-                  class="social-btn alipay"
-                  @click="alipayLogin"
-                >
-                  <span class="alipay-icon"></span>
-                  <span>支付宝</span>
-                </el-button>
-                <el-button 
-                  class="social-btn qq"
-                  @click="qqLogin"
-                >
-                  <span class="qq-icon"></span>
-                  <span>QQ</span>
-                </el-button>
-              </div>
-            </div>
-
             <!-- 注册链接 -->
             <div class="register-section">
               <span>还没有账号？</span>
@@ -235,9 +200,7 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { 
-  Iphone, Message, Lock, User, 
-  ChatDotRound, View 
-} from '@element-plus/icons-vue'
+  Iphone, Message, Lock, User} from '@element-plus/icons-vue'
 import api from '../api/index.js'
 
 const router = useRouter()
@@ -315,8 +278,8 @@ const sendSmsCode = async () => {
       phone: loginForm.phone,
       type: 'login'
     })
-
-    if (res.code === 200) {
+    console.log(res.data);
+    if (res.data !=null) {
       ElMessage.success('验证码发送成功')
       // 开始倒计时
       smsCountdown.value = 60
@@ -362,7 +325,7 @@ const handleLogin = async () => {
           loginData = {
             phone: loginForm.phone,
             passwordHash: loginForm.password,
-            login_type: 'password'
+            login_type: 'phone_password'
           }
         }
       } else {
@@ -373,7 +336,8 @@ const handleLogin = async () => {
           login_type: 'password'
         }
       }
-
+      console.log(loginData);
+      
       const res = await api.user.login(loginData)
       console.log(res.data);
       
@@ -432,25 +396,6 @@ watch(showSmsCode, () => {
     loginFormRef.value.clearValidate(['sms_code', 'password'])
   }
 })
-
-// 忘记密码
-const forgotPassword = () => {
-  router.push('/forgot-password')
-}
-
-// 第三方登录
-const wechatLogin = () => {
-  ElMessage.info('微信登录功能开发中')
-}
-
-const qqLogin = () => {
-  ElMessage.info('QQ登录功能开发中')
-}
-
-const alipayLogin = () => {
-  ElMessage.info('支付宝登录功能开发中')
-}
-
 // 跳转到注册页面
 const goToRegister = () => {
   router.push('/register')
@@ -500,10 +445,11 @@ onMounted(() => {
 <style scoped>
 .login-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  background: linear-gradient(135deg, #e0f7fa 0%, #fce4ec 100%);
   display: flex;
-  flex-direction: column;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  justify-content: center;
+  align-items: center;
+  padding: 0 20px;
 }
 
 .login-container {

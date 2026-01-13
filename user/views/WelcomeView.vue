@@ -60,12 +60,6 @@
         >
           开始点餐
         </el-button>
-        <el-button
-          @click="viewBenefits"
-          class="benefits-btn"
-        >
-          查看全部权益
-        </el-button>
       </div>
 
       <!-- 提示 -->
@@ -96,18 +90,11 @@ const router = useRouter()
 const goToHome = () => {
   router.push('/')
 }
-
-// 查看权益
-const viewBenefits = () => {
-  router.push('/benefits')
-}
-
 // 自动跳转（可选）
 onMounted(() => {
-  // 5秒后自动跳转到首页
-  // setTimeout(() => {
-  //   router.push('/')
-  // }, 5000)
+  setTimeout(() => {
+    router.push('/')
+  }, 5000)
 })
 </script>
 

@@ -1,20 +1,12 @@
 <template>
   <div class="register-page">
-    <!-- 顶部背景图 -->
-    <div class="register-header">
-      <div class="header-content">
+    <!-- 注册表单 -->
+    <div class="register-form">
+      <!-- 标题部分 -->
+      <div class="form-header">
         <h1>创建账号</h1>
         <p>注册后享受更多会员权益</p>
       </div>
-    </div>
-
-    <!-- 返回按钮 -->
-    <div class="back-btn" @click="router.back()">
-      <el-icon><ArrowLeft /></el-icon>
-    </div>
-
-    <!-- 注册表单 -->
-    <div class="register-form">
       <el-form
         ref="registerFormRef"
         :model="registerForm"
@@ -101,30 +93,6 @@
             </template>
           </el-input>
         </el-form-item>
-
-        <!-- 邀请码（可选） -->
-        <el-form-item prop="invite_code">
-          <el-input
-            v-model="registerForm.invite_code"
-            placeholder="邀请码（选填）"
-            :maxlength="10"
-          >
-            <template #prefix>
-              <el-icon><Promotion /></el-icon>
-            </template>
-          </el-input>
-        </el-form-item>
-
-        <!-- 协议同意 -->
-        <el-form-item prop="agreement">
-          <el-checkbox v-model="registerForm.agreement">
-            我已阅读并同意
-            <el-button type="text" @click="showUserAgreement">《用户协议》</el-button>
-            和
-            <el-button type="text" @click="showPrivacyPolicy">《隐私政策》</el-button>
-          </el-checkbox>
-        </el-form-item>
-
         <!-- 注册按钮 -->
         <el-form-item>
           <el-button
@@ -145,31 +113,6 @@
         </div>
       </el-form>
     </div>
-
-    <!-- 其他注册方式 -->
-    <div class="other-register" v-if="socialRegisterEnabled">
-      <div class="other-title">
-        <span>其他注册方式</span>
-      </div>
-      <div class="social-buttons">
-        <el-button
-          class="social-btn wechat"
-          circle
-          size="large"
-          @click="wechatRegister"
-        >
-          <el-icon><ChatDotRound /></el-icon>
-        </el-button>
-        <el-button
-          class="social-btn qq"
-          circle
-          size="large"
-          @click="qqRegister"
-        >
-          <span class="qq-icon">QQ</span>
-        </el-button>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -178,9 +121,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { 
-  ArrowLeft, Iphone, Message, User, Lock, 
-  Promotion, ChatDotRound 
-} from '@element-plus/icons-vue'
+  Iphone, Message, User, Lock} from '@element-plus/icons-vue'
 import api from '../api/index'
 
 const router = useRouter()
@@ -210,9 +151,7 @@ const validatePassword = (rule, value, callback) => {
     callback(new Error('请输入密码'))
   } else if (value.length < 6 || value.length > 20) {
     callback(new Error('密码长度在6到20个字符'))
-  } else if (!/(?=.*[a-zA-Z])(?=.*\d)/.test(value)) {
-    callback(new Error('密码必须包含字母和数字'))
-  } else {
+  }  else {
     callback()
   }
 }
@@ -261,9 +200,6 @@ const registerRules = {
   ]
 }
 
-// 是否启用社交注册
-const socialRegisterEnabled = ref(true)
-
 // 计算属性
 const smsButtonText = computed(() => {
   if (sendingSms.value) return '发送中...'
@@ -279,7 +215,6 @@ const checkPhoneExists = async () => {
 
   checkingPhone.value = true
   try {
-    const res = await api.user.getUserInfo() // 这里假设有检查手机号的接口
     // 实际开发中应该有专门的检查接口
     // 这里简单模拟
     const registeredPhones = ['13800138000', '13900139000']
@@ -334,8 +269,9 @@ const sendRegisterSmsCode = async () => {
       phone: registerForm.phone,
       type: 'register'
     })
-
-    if (res.code === 200) {
+    console.log(res.data);
+    
+    if (res.data !=null) {
       ElMessage.success('验证码发送成功')
       // 开始倒计时
       smsCountdown.value = 60
@@ -370,23 +306,25 @@ const handleRegister = async () => {
         phone: registerForm.phone,
         sms_code: registerForm.sms_code,
         username: registerForm.username,
-        password: registerForm.password,
+        passwordHash: registerForm.password,
         invite_code: registerForm.invite_code || undefined
       }
 
       const res = await api.user.register(registerData)
-
-      if (res.code === 200) {
+      console.log(res.data);
+      
+      if (res.data.success) {
         ElMessage.success('注册成功！')
 
         // 自动登录
         const loginRes = await api.user.login({
           phone: registerForm.phone,
-          password: registerForm.password,
-          login_type: 'password'
+          passwordHash: registerForm.password,
+          login_type: 'phone_password'
         })
-
-        if (loginRes.code === 200) {
+        console.log(loginRes.data);
+        
+        if (loginRes.data.success) {
           const { token, user } = loginRes.data
           localStorage.setItem('token', token)
           localStorage.setItem('user_info', JSON.stringify(user))
@@ -409,33 +347,10 @@ const handleRegister = async () => {
     }
   })
 }
-
-// 微信注册
-const wechatRegister = () => {
-  ElMessage.info('微信注册功能开发中')
-  // 实际开发中这里会跳转到微信授权页面
-}
-
-// QQ注册
-const qqRegister = () => {
-  ElMessage.info('QQ注册功能开发中')
-}
-
 // 跳转到登录页面
 const goToLogin = () => {
   router.push('/login')
 }
-
-// 显示用户协议
-const showUserAgreement = () => {
-  router.push('/agreement/user')
-}
-
-// 显示隐私政策
-const showPrivacyPolicy = () => {
-  router.push('/agreement/privacy')
-}
-
 // 监听键盘事件
 const handleKeyPress = (event) => {
   if (event.key === 'Enter') {
@@ -458,99 +373,123 @@ onMounted(() => {
 <style scoped>
 .register-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: linear-gradient(135deg, #e0f7fa 0%, #fce4ec 100%);
   display: flex;
-  flex-direction: column;
-  position: relative;
+  justify-content: center;
+  align-items: center;
+  padding: 0 20px;
 }
 
 .register-header {
-  padding: 60px 20px 40px;
+  padding: 40px 20px;
   text-align: center;
-  color: white;
+  color: #333;
 }
 
 .header-content h1 {
-  margin: 0 0 10px 0;
   font-size: 32px;
   font-weight: bold;
+  margin: 0 0 8px 0;
 }
 
 .header-content p {
-  margin: 0;
   font-size: 14px;
-  opacity: 0.9;
+  color: #666;
 }
 
 .back-btn {
   position: absolute;
-  top: 20px;
-  left: 15px;
-  width: 40px;
-  height: 40px;
-  background: rgba(255, 255, 255, 0.2);
+  top: 15px;
+  left: 10px;
+  width: 35px;
+  height: 35px;
+  background: rgba(255, 255, 255, 0.3); /* 更浅的背景色 */
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: #333; /* 更深的图标颜色 */
   cursor: pointer;
   z-index: 10;
 }
-
-.register-form {
-  flex: 1;
-  background: white;
-  border-radius: 20px 20px 0 0;
-  padding: 40px 30px 20px;
-  position: relative;
+.form-header {
+  text-align: center;
+  margin-bottom: 20px;
 }
 
+.form-header h1 {
+  font-size: 24px;
+  font-weight: bold;
+  margin: 0;
+  color: #333;
+}
+
+.form-header p {
+  font-size: 14px;
+  color: #666;
+  margin: 8px 0 0;
+}
+.register-form {
+  width: 100%;
+  max-width: 400px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
 .form-tip {
   font-size: 12px;
-  color: #999;
-  margin-top: 5px;
+  color: #666; /* 更柔和的提示文字颜色 */
+  margin-top: 4px;
   line-height: 1.4;
 }
 
 .register-btn {
   width: 100%;
-  height: 50px;
+  height: 48px;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff8c00 100%);
+  border: none;
+  border-radius: 8px;
   font-size: 16px;
-  margin-top: 10px;
+  color: white;
+  margin-top: 16px;
+}
+
+.register-btn:hover {
+  background: linear-gradient(135deg, #ff8c00 0%, #ff6b6b 100%);
 }
 
 .login-link {
   text-align: center;
-  color: #666;
-  font-size: 14px;
-  margin-top: 20px;
+  color: #555; /* 更深的文字颜色 */
+  font-size: 13px;
+  margin-top: 15px;
 }
 
 .login-link .el-button {
   padding: 0;
-  font-size: 14px;
-  color: #ff6b00;
+  font-size: 13px;
+  color: #ff6b6b; /* 更鲜明的链接颜色 */
 }
 
 .other-register {
-  padding: 20px 30px;
-  background: white;
-  border-top: 1px solid #f0f0f0;
+  padding: 15px 20px;
+  background: #f9f9f9; /* 更浅的背景色 */
+  border-top: 1px solid #eee;
 }
 
 .other-title {
   position: relative;
-  margin-bottom: 15px;
+  margin-bottom: 12px;
   text-align: center;
 }
 
 .other-title span {
   display: inline-block;
-  padding: 0 10px;
-  background: white;
-  color: #999;
-  font-size: 14px;
+  padding: 0 8px;
+  background: #f9f9f9;
+  color: #888; /* 更柔和的文字颜色 */
+  font-size: 13px;
   position: relative;
   z-index: 1;
 }
@@ -562,21 +501,21 @@ onMounted(() => {
   left: 0;
   right: 0;
   height: 1px;
-  background: #f0f0f0;
+  background: #eee;
   transform: translateY(-50%);
 }
 
 .social-buttons {
   display: flex;
   justify-content: center;
-  gap: 20px;
+  gap: 15px;
 }
 
 .social-btn {
-  width: 50px;
-  height: 50px;
+  width: 45px;
+  height: 45px;
   border: none;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .social-btn.wechat {
@@ -596,7 +535,7 @@ onMounted(() => {
 
 /* 表单样式调整 */
 :deep(.el-input__wrapper) {
-  background: #f8f9fa;
+  background: #f5f5f5; /* 更浅的输入框背景色 */
 }
 
 :deep(.el-input__inner) {
@@ -604,11 +543,11 @@ onMounted(() => {
 }
 
 :deep(.el-form-item) {
-  margin-bottom: 20px;
+  margin-bottom: 15px; /* 调整表单项间距 */
 }
 
 :deep(.el-button--primary) {
-  background: linear-gradient(135deg, #ff6b00 0%, #ff8c00 100%);
+  background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
   border: none;
 }
 
@@ -617,30 +556,39 @@ onMounted(() => {
 }
 
 :deep(.el-checkbox) {
-  color: #666;
-  font-size: 14px;
+  color: #555; /* 更深的文字颜色 */
+  font-size: 13px;
 }
 
 :deep(.el-checkbox .el-button) {
   padding: 0;
-  font-size: 14px;
-  color: #666;
+  font-size: 13px;
+  color: #555;
 }
 
 :deep(.el-checkbox .el-button:hover) {
-  color: #ff6b00;
+  color: #ff6b6b; /* 更鲜明的链接颜色 */
 }
 
-/* 短信验证码按钮样式 */
 :deep(.el-input-group__append) {
-  padding: 0;
-  border: none;
-  background: transparent;
+  display: flex;
+  align-items: center; /* 垂直居中 */
 }
 
+/* 调整“获取验证码”按钮样式 */
 :deep(.el-input-group__append .el-button) {
-  border-radius: 0 4px 4px 0;
-  padding: 0 15px;
-  height: 100%;
+  height: 40px; /* 调高按钮 */
+  font-size: 14px; /* 调大字体 */
+  padding: 0 16px; /* 增加内边距 */
+  background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+  border-radius: 4px;
+  color: white;
+  display: flex;
+  align-items: center; /* 垂直居中 */
+  justify-content: center; /* 水平居中 */
+}
+
+:deep(.el-input-group__append .el-button:hover) {
+  background: linear-gradient(135deg, #fad0c4 0%, #ff9a9e 100%);
 }
 </style>

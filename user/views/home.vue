@@ -26,7 +26,7 @@
 
       <!-- 轮播图 -->
       <div class="banner-section" v-if="banners.length > 0">
-        <el-carousel height="200px" class="banner" indicator-position="outside">
+        <el-carousel  class="banner" indicator-position="outside">
           <el-carousel-item v-for="item in banners" :key="item.id">
             <img :src="item.imageUrl" class="banner-image" @click="handleBannerClick(item)" />
           </el-carousel-item>

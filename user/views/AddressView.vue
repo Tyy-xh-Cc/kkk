@@ -196,16 +196,11 @@ const loading = ref(false)
 // API: 获取省市区数据（使用china-area-data库）
 const getRegions = async () => {
   try {
-    // 使用element-china-area-data库获取完整的省市区数据
-    // 这个库专门为Element UI设计，数据格式完全兼容el-cascader
     areaOptions.value =  regionData
     
     if (!areaOptions.value || !Array.isArray(areaOptions.value)) {
       throw new Error('无法获取有效的省市区数据')
     }
-    
-    console.log('使用element-china-area-data库获取的省市区数据:', areaOptions.value)
-    
   } catch (error) {
     console.error('获取地区数据失败:', error)
     ElMessage.error('获取地区数据失败: ' + error.message)
@@ -240,7 +235,7 @@ const addNewAddress = async () => {
     
     const res = await api.address.addAddress(data)
     
-    if (res.code === 200) {
+    if (res.data.success) {
       ElMessage.success('添加成功')
       showAddressDialog.value = false
       resetForm()
@@ -268,7 +263,7 @@ const updateAddress = async () => {
     
     const res = await api.address.updateAddress(editingAddress.value.address_id, data)
     
-    if (res.code === 200) {
+    if (res.data.success) {
       ElMessage.success('更新成功')
       showAddressDialog.value = false
       resetForm()
@@ -293,7 +288,7 @@ const deleteAddress = async (addressId) => {
     
     const res = await api.address.deleteAddress(addressId)
     
-    if (res.code === 200) {
+    if (res.data.success) {
       ElMessage.success('删除成功')
       getAddresses()
     } else {
@@ -311,7 +306,7 @@ const setDefaultAddress = async (addressId) => {
   try {
     const res = await api.address.setDefaultAddress(addressId)
     
-    if (res.code === 200) {
+    if (res.data.success) {
       ElMessage.success('设置成功')
       getAddresses()
     } else {

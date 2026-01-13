@@ -7,9 +7,6 @@
     <div class="main-content">
       <!-- 顶部标题 -->
       <div class="page-header">
-        <div class="back-btn" @click="router.back()">
-          <el-icon><ArrowLeft /></el-icon>
-        </div>
         <h1>我的订单</h1>
       </div>
 
