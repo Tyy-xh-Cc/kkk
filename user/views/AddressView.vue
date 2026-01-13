@@ -213,6 +213,8 @@ const getAddresses = async () => {
   try {
     const res = await api.address.getAddressList()
     addresses.value = res.data || []
+    console.log(res.data);
+    
   } catch (error) {
     ElMessage.error('获取地址列表失败')
     console.error('获取地址列表失败:', error)
@@ -261,7 +263,10 @@ const updateAddress = async () => {
       is_default: addressForm.value.is_default
     }
     
-    const res = await api.address.updateAddress(editingAddress.value.address_id, data)
+    console.log(data);
+    
+    const res = await api.address.updateAddress(editingAddress.value.id, data)
+    console.log(res.data);
     
     if (res.data.success) {
       ElMessage.success('更新成功')
@@ -328,14 +333,17 @@ const addAddress = () => {
 // 编辑地址
 const editAddress = (address) => {
   editingAddress.value = address
+  
   addressForm.value = {
     name: address.name,
-    receiver_name: address.receiver_name,
+    receiver_name: address.id,
     phone: address.phone,
     area: address.area ? address.area.split('/') : [],
     address_detail: address.address,
     is_default: address.is_default
   }
+  console.log(addressForm.value );
+  
   showAddressDialog.value = true
 }
 

@@ -5,7 +5,7 @@ export default {
   // 获取地址列表
   getAddressList() {
     return request({
-      url: '/api/addresses',
+      url: '/api/addresses/my',
       method: 'get'
     })
   },
