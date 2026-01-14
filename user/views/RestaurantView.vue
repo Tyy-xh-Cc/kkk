@@ -2,19 +2,10 @@
   <div class="restaurant-page">
     <!-- 餐厅头部 -->
     <div class="restaurant-header" ref="headerRef">
-      <img :src="restaurant.cover_url || defaultCover" class="header-bg" />
+      <img :src="restaurant.coverUrl || defaultCover" class="header-bg" />
       <div class="header-content">
         <div class="back-btn" @click="router.back()">
           <el-icon><ArrowLeft /></el-icon>
-        </div>
-        <div class="header-actions">
-          <el-button type="text" @click="toggleFavorite">
-            <el-icon v-if="isFavorite" color="#ff6b00"><StarFilled /></el-icon>
-            <el-icon v-else><Star /></el-icon>
-          </el-button>
-          <el-button type="text" @click="shareRestaurant">
-            <el-icon><Share /></el-icon>
-          </el-button>
         </div>
         <div class="restaurant-info">
           <h1 class="name">{{ restaurant.name }}</h1>
@@ -210,16 +201,14 @@ const activeCategory = ref(null)
 const isSticky = ref(false)
 const showProductDialog = ref(false)
 const selectedProduct = ref(null)
-const isFavorite = ref(false)
 const totalReviews = ref(0)
 
 // 默认图片
-const defaultCover = 'https://via.placeholder.com/750x300?text=Restaurant'
-const defaultProductImage = 'https://via.placeholder.com/100x100?text=Product'
-const defaultAvatar = 'https://via.placeholder.com/40x40?text=User'
+const defaultCover = 'http://localhost:8080/images/banners/banner1.jpg'
+const defaultProductImage = 'http://localhost:8080/images/banners/banner1.jpg'
+const defaultAvatar = 'http://localhost:8080/images/banners/banner1.jpg'
 
 // Refs
-const headerRef = ref(null)
 const navRef = ref(null)
 const categoryRefs = ref({})
 const cartBottomRef = ref(null)
@@ -228,10 +217,9 @@ const cartBottomRef = ref(null)
 const getRestaurantDetail = async () => {
   try {
     const res = await api.restaurant.getRestaurantDetail(restaurantId)
-    restaurant.value = res.data || {}
+    restaurant.value = res.data.userInfo|| {}
+    console.log('获取餐厅详情:', restaurant.value);
     
-    // 检查是否收藏
-    checkIsFavorite()
   } catch (error) {
     ElMessage.error('获取餐厅信息失败')
     console.error('获取餐厅信息失败:', error)
@@ -242,7 +230,9 @@ const getRestaurantDetail = async () => {
 const getCategories = async () => {
   try {
     const res = await api.restaurant.getRestaurantCategories(restaurantId)
-    categories.value = res.data || []
+    // 确保res.data是数组，然后过滤掉null或undefined值
+    const categoriesData = Array.isArray(res.data) ? res.data : []
+    categories.value = categoriesData.filter(category => category)
     if (categories.value.length > 0) {
       activeCategory.value = categories.value[0].category_id
     }
@@ -255,60 +245,14 @@ const getCategories = async () => {
 const getProducts = async () => {
   try {
     const res = await api.restaurant.getRestaurantProducts(restaurantId)
-    products.value = res.data || []
+    products.value = res.data.userInfo || []
+    console.log('获取商品列表:', products.value);
+    
   } catch (error) {
     ElMessage.error('获取商品列表失败')
     console.error('获取商品列表失败:', error)
   }
 }
-
-// API: 获取优惠活动
-const getPromotions = async () => {
-  try {
-    const res = await api.restaurant.getRestaurantPromotions(restaurantId)
-    promotions.value = res.data || []
-  } catch (error) {
-    console.error('获取优惠活动失败:', error)
-  }
-}
-
-// API: 获取评价
-const getReviews = async () => {
-  try {
-    const res = await api.restaurant.getRestaurantReviews(restaurantId, { page: 1, page_size: 3 })
-    reviews.value = res.data?.list || []
-    totalReviews.value = res.data?.total || 0
-  } catch (error) {
-    console.error('获取评价失败:', error)
-  }
-}
-
-// API: 检查是否收藏
-const checkIsFavorite = async () => {
-  try {
-    const res = await api.user.getFavorites({ restaurant_id: restaurantId })
-    isFavorite.value = res.data?.some(fav => fav.restaurant_id === parseInt(restaurantId)) || false
-  } catch (error) {
-    console.error('检查收藏状态失败:', error)
-  }
-}
-
-// API: 添加/取消收藏
-const toggleFavorite = async () => {
-  try {
-    const data = {
-      restaurant_id: restaurantId,
-      type: isFavorite.value ? 'remove' : 'add'
-    }
-    await api.restaurant.toggleFollowRestaurant(data)
-    isFavorite.value = !isFavorite.value
-    ElMessage.success(isFavorite.value ? '已收藏' : '已取消收藏')
-  } catch (error) {
-    ElMessage.error('操作失败')
-    console.error('收藏操作失败:', error)
-  }
-}
-
 // API: 获取购物车商品
 const getCartItems = async () => {
   try {
@@ -359,7 +303,7 @@ const showProductDetail = (product) => {
 }
 
 // 处理添加购物车（从商品详情弹窗）
-const handleAddToCart = (product, quantity, specifications) => {
+const handleAddToCart = (product) => {
   addToCart(product)
 }
 
@@ -432,18 +376,6 @@ const formatTime = (time) => {
 }
 
 // 分享餐厅
-const shareRestaurant = () => {
-  if (navigator.share) {
-    navigator.share({
-      title: restaurant.value.name,
-      text: restaurant.value.description,
-      url: window.location.href
-    })
-  } else {
-    ElMessage.info('复制链接成功')
-    navigator.clipboard.writeText(window.location.href)
-  }
-}
 
 // 图片预览
 const previewImage = (images, index) => {
@@ -472,8 +404,6 @@ onMounted(async () => {
     getRestaurantDetail(),
     getCategories(),
     getProducts(),
-    getPromotions(),
-    getReviews(),
     getCartItems()
   ])
   

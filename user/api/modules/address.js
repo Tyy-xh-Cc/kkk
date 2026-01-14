@@ -12,6 +12,8 @@ export default {
   
   // 添加地址
   addAddress(data) {
+    console.log(data);
+    
     return request({
       url: '/api/addresses',
       method: 'post',

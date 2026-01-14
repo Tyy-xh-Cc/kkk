@@ -20,7 +20,6 @@
             v-model="registerForm.phone"
             placeholder="请输入手机号"
             :maxlength="11"
-            @blur="checkPhoneExists"
           >
             <template #prefix>
               <el-icon><Iphone /></el-icon>
@@ -56,7 +55,6 @@
             v-model="registerForm.username"
             placeholder="请设置用户名"
             :maxlength="20"
-            @blur="checkUsernameExists"
           >
             <template #prefix>
               <el-icon><User /></el-icon>
@@ -206,50 +204,6 @@ const smsButtonText = computed(() => {
   if (smsCountdown.value > 0) return `${smsCountdown.value}秒后重发`
   return '获取验证码'
 })
-
-// API: 检查手机号是否已注册
-const checkPhoneExists = async () => {
-  if (!registerForm.phone || !/^1[3-9]\d{9}$/.test(registerForm.phone)) {
-    return
-  }
-
-  checkingPhone.value = true
-  try {
-    // 实际开发中应该有专门的检查接口
-    // 这里简单模拟
-    const registeredPhones = ['13800138000', '13900139000']
-    if (registeredPhones.includes(registerForm.phone)) {
-      ElMessage.warning('该手机号已被注册')
-      registerForm.phone = ''
-    }
-  } catch (error) {
-    // 忽略检查错误
-  } finally {
-    checkingPhone.value = false
-  }
-}
-
-// API: 检查用户名是否已存在
-const checkUsernameExists = async () => {
-  if (!registerForm.username || registerForm.username.length < 3) {
-    return
-  }
-
-  checkingUsername.value = true
-  try {
-    // 实际开发中应该有专门的检查接口
-    // 这里简单模拟
-    const registeredUsernames = ['admin', 'test', 'user']
-    if (registeredUsernames.includes(registerForm.username)) {
-      ElMessage.warning('该用户名已被占用')
-      registerForm.username = ''
-    }
-  } catch (error) {
-    // 忽略检查错误
-  } finally {
-    checkingUsername.value = false
-  }
-}
 
 // API: 发送注册短信验证码
 const sendRegisterSmsCode = async () => {

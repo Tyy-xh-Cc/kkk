@@ -1,53 +1,53 @@
 <template>
-    <el-dialog
-      :model-value="visible"
-      :title="product.name"
-      width="90%"
-      :close-on-click-modal="false"
-      :close-on-press-escape="false"
-      @update:model-value="$emit('update:visible', $event)"
-      class="product-dialog"
-    >
-      <div class="product-detail">
-        <!-- 产品图片 -->
-        <div class="product-image">
-          <img :src="product.imageUrl || defaultImage" :alt="product.name" />
+  <el-dialog
+    :model-value="visible"
+    :title="safeProduct.name"
+    width="90%"
+    :close-on-click-modal="false"
+    :close-on-press-escape="false"
+    @update:model-value="$emit('update:visible', $event)"
+    class="product-dialog"
+  >
+    <div class="product-detail">
+      <!-- 产品图片 -->
+      <div class="product-image">
+        <img :src="safeProduct.imageUrl || defaultImage" :alt="safeProduct.name" />
+      </div>
+      
+      <!-- 产品信息 -->
+      <div class="product-info">
+        <h3 class="product-name">{{ safeProduct.name }}</h3>
+        
+        <!-- 价格 -->
+        <div class="product-price">
+          <span class="current-price">¥{{ safeProduct.price }}</span>
+          <span v-if="safeProduct.originalPrice" class="original-price">¥{{ safeProduct.originalPrice }}</span>
         </div>
         
-        <!-- 产品信息 -->
-        <div class="product-info">
-          <h3 class="product-name">{{ product.name }}</h3>
-          
-          <!-- 价格 -->
-          <div class="product-price">
-            <span class="current-price">¥{{ product.price }}</span>
-            <span v-if="product.originalPrice" class="original-price">¥{{ product.originalPrice }}</span>
-          </div>
-          
-          <!-- 描述 -->
-          <div class="product-desc" v-if="product.description">
-            {{ product.description }}
-          </div>
-          
-          <!-- 库存 -->
-          <div class="product-stock" v-if="product.stock !== undefined">
-            库存：{{ product.stock }}份
-          </div>
-          
-          <!-- 销量 -->
-          <div class="product-sales" v-if="product.sales">
-            月售{{ product.sales }}份
-          </div>
-          
-          <!-- 口味选择（如果有） -->
-          <div class="product-options" v-if="product.options && product.options.length">
-            <h4>选择口味</h4>
-            <div class="options-list">
-              <el-radio-group v-model="selectedOption">
-                <el-radio-button
-                  v-for="option in product.options"
-                  :key="option.id"
-                  :label="option.id"
+        <!-- 描述 -->
+        <div class="product-desc" v-if="safeProduct.description">
+          {{ safeProduct.description }}
+        </div>
+        
+        <!-- 库存 -->
+        <div class="product-stock" v-if="safeProduct.stock !== undefined">
+          库存：{{ safeProduct.stock }}份
+        </div>
+        
+        <!-- 销量 -->
+        <div class="product-sales" v-if="safeProduct.sales">
+          月售{{ safeProduct.sales }}份
+        </div>
+        
+        <!-- 口味选择（如果有） -->
+        <div class="product-options" v-if="safeProduct.options && safeProduct.options.length">
+          <h4>选择口味</h4>
+          <div class="options-list">
+            <el-radio-group v-model="selectedOption">
+              <el-radio-button
+                v-for="option in safeProduct.options"
+                :key="option.id"
+                :label="option.id"
                 >
                   {{ option.name }}
                   <span v-if="option.price"> +¥{{ option.price }}</span>
@@ -105,17 +105,22 @@
   const selectedOption = ref('')
   const defaultImage = 'https://via.placeholder.com/300x300?text=Product'
   
-  // 监听产品变化，重置选项和数量
-  watch(() => props.product.id, () => {
-    quantity.value = 1
-    selectedOption.value = props.product.options?.[0]?.id || ''
-  })
+// 监听产品变化，重置选项和数量
+watch(() => props.product, (newProduct) => {
+  // 添加null检查
+  if (!newProduct) return;
   
+  quantity.value = 1
+  selectedOption.value = newProduct.options?.[0]?.id || ''
+}, { immediate: true })
   // 关闭对话框
   const closeDialog = () => {
     emit('update:visible', false)
   }
-  
+  // 添加安全访问产品属性的计算属性
+const safeProduct = computed(() => {
+  return props.product || {}
+})
   // 添加到购物车
   const addToCart = () => {
     // 检查库存

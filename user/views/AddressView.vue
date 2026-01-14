@@ -51,15 +51,7 @@
           <el-button 
             type="text" 
             size="small"
-            @click.stop="setDefaultAddress(address.address_id)"
-            :disabled="address.is_default"
-          >
-            设为默认
-          </el-button>
-          <el-button 
-            type="text" 
-            size="small"
-            @click.stop="deleteAddress(address.address_id)"
+            @click.stop="deleteAddress(address.id)"
           >
             删除
           </el-button>
@@ -128,9 +120,6 @@
             show-word-limit
           />
         </el-form-item>
-        <el-form-item label="设为默认">
-          <el-switch v-model="addressForm.is_default" />
-        </el-form-item>
       </el-form>
       
       <template #footer>
@@ -161,6 +150,7 @@ const router = useRouter()
 const addresses = ref([])
 const showAddressDialog = ref(false)
 const editingAddress = ref(null)
+const addressFormRef = ref(null)
 const addressForm = ref({
   name: '',
   receiver_name: '',
@@ -228,13 +218,35 @@ const addNewAddress = async () => {
   try {
     const data = {
       name: addressForm.value.name,
-      receiver_name: addressForm.value.receiver_name,
+      receiverName: addressForm.value.receiver_name,
       phone: addressForm.value.phone,
       address: addressForm.value.address_detail,
       area: addressForm.value.area.join('/'),
-      is_default: addressForm.value.is_default
     }
-    
+    if (!addressForm.value.area || addressForm.value.area.length === 0) {
+      ElMessage.error('请选择所在地区')
+      return
+    }
+    if (!addressForm.value.address_detail) {
+      ElMessage.error('请输入详细地址')
+      return
+    }
+    if (!addressForm.value.name) {
+      ElMessage.error('请输入地址标签')
+      return
+    }
+    if (!addressForm.value.receiver_name) {
+      ElMessage.error('请输入收货人姓名')
+      return
+    }
+    if (!addressForm.value.phone) {
+      ElMessage.error('请输入手机号')
+      return
+    }
+    if (!/^1[3-9]\d{9}$/.test(addressForm.value.phone)) {
+      ElMessage.error('请输入正确的手机号')
+      return
+    }
     const res = await api.address.addAddress(data)
     
     if (res.data.success) {
@@ -256,19 +268,37 @@ const updateAddress = async () => {
   try {
     const data = {
       name: addressForm.value.name,
-      receiver_name: addressForm.value.receiver_name,
+      receiverName: addressForm.value.receiver_name,
       phone: addressForm.value.phone,
       address: addressForm.value.address_detail,
       area: addressForm.value.area.join('/'),
-      is_default: addressForm.value.is_default
+    } 
+    if (!addressForm.value.area || addressForm.value.area.length === 0) {
+      ElMessage.error('请选择所在地区')
+      return
     }
-    
-    console.log(data);
-    
+    if (!addressForm.value.address_detail) {
+      ElMessage.error('请输入详细地址')
+      return
+    }
+    if (!addressForm.value.name) {
+      ElMessage.error('请输入地址标签')
+      return
+    }
+    if (!addressForm.value.receiver_name) {
+      ElMessage.error('请输入收货人姓名')
+      return
+    }
+    if (!addressForm.value.phone) {
+      ElMessage.error('请输入手机号')
+      return
+    }
+    if (!/^1[3-9]\d{9}$/.test(addressForm.value.phone)) {
+      ElMessage.error('请输入正确的手机号')
+      return
+    }
     const res = await api.address.updateAddress(editingAddress.value.id, data)
-    console.log(res.data);
-    
-    if (res.data.success) {
+    if (res.data) {
       ElMessage.success('更新成功')
       showAddressDialog.value = false
       resetForm()
@@ -293,7 +323,7 @@ const deleteAddress = async (addressId) => {
     
     const res = await api.address.deleteAddress(addressId)
     
-    if (res.data.success) {
+    if (res.data) {
       ElMessage.success('删除成功')
       getAddresses()
     } else {
@@ -303,23 +333,6 @@ const deleteAddress = async (addressId) => {
     if (error !== 'cancel') {
       ElMessage.error('删除失败')
     }
-  }
-}
-
-// API: 设为默认地址
-const setDefaultAddress = async (addressId) => {
-  try {
-    const res = await api.address.setDefaultAddress(addressId)
-    
-    if (res.data.success) {
-      ElMessage.success('设置成功')
-      getAddresses()
-    } else {
-      ElMessage.error(res.message || '设置失败')
-    }
-  } catch (error) {
-    ElMessage.error('设置失败')
-    console.error('设置默认地址失败:', error)
   }
 }
 
@@ -336,14 +349,11 @@ const editAddress = (address) => {
   
   addressForm.value = {
     name: address.name,
-    receiver_name: address.id,
+    receiver_name: address.receiverName,
     phone: address.phone,
     area: address.area ? address.area.split('/') : [],
     address_detail: address.address,
-    is_default: address.is_default
   }
-  console.log(addressForm.value );
-  
   showAddressDialog.value = true
 }
 
@@ -374,7 +384,6 @@ const resetForm = () => {
     phone: '',
     area: [],
     address_detail: '',
-    is_default: false
   }
 }
 

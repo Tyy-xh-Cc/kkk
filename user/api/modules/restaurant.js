@@ -37,11 +37,10 @@ export default {
   },
   
   // 获取餐厅商品列表
-  getRestaurantProducts(restaurantId, params) {
+  getRestaurantProducts(restaurantId) {
     return request({
       url: `/api/restaurants/${restaurantId}/products`,
       method: 'get',
-      params
     })
   },
   
