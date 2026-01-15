@@ -29,12 +29,12 @@
           <div class="address-header">
             <div class="address-name">{{ address.name }}</div>
             <div class="address-tags">
-              <el-tag v-if="address.is_default" size="small" type="success">默认</el-tag>
+              <el-tag v-if="address.isDefault" size="small" type="success">默认</el-tag>
             </div>
           </div>
           <div class="address-info">
             <div class="receiver">
-              <span class="name">{{ address.receiver_name }}</span>
+              <span class="name">{{ address.receiverName }}</span>
               <span class="phone">{{ address.phone }}</span>
             </div>
             <div class="address-detail">{{ address.address }}</div>
@@ -120,6 +120,9 @@
             show-word-limit
           />
         </el-form-item>
+        <el-form-item>
+          <el-checkbox v-model="addressForm.isDefault">设为默认地址</el-checkbox>
+        </el-form-item>
       </el-form>
       
       <template #footer>
@@ -150,14 +153,13 @@ const router = useRouter()
 const addresses = ref([])
 const showAddressDialog = ref(false)
 const editingAddress = ref(null)
-const addressFormRef = ref(null)
 const addressForm = ref({
   name: '',
   receiver_name: '',
   phone: '',
   area: [],
   address_detail: '',
-  is_default: false
+  isDefault: false
 })
 const addressRules = {
   name: [
@@ -222,6 +224,7 @@ const addNewAddress = async () => {
       phone: addressForm.value.phone,
       address: addressForm.value.address_detail,
       area: addressForm.value.area.join('/'),
+      isDefault: addressForm.value.isDefault || false
     }
     if (!addressForm.value.area || addressForm.value.area.length === 0) {
       ElMessage.error('请选择所在地区')
@@ -272,7 +275,8 @@ const updateAddress = async () => {
       phone: addressForm.value.phone,
       address: addressForm.value.address_detail,
       area: addressForm.value.area.join('/'),
-    } 
+      isDefault: addressForm.value.isDefault || false
+    }
     if (!addressForm.value.area || addressForm.value.area.length === 0) {
       ElMessage.error('请选择所在地区')
       return
@@ -353,6 +357,7 @@ const editAddress = (address) => {
     phone: address.phone,
     area: address.area ? address.area.split('/') : [],
     address_detail: address.address,
+    isDefault: address.isDefault || false
   }
   showAddressDialog.value = true
 }
@@ -384,6 +389,7 @@ const resetForm = () => {
     phone: '',
     area: [],
     address_detail: '',
+    isDefault: false
   }
 }
 

@@ -3,7 +3,9 @@
     <!-- 顶部标题 -->
     <div class="page-header">
       <div class="back-btn" @click="goBack">
-        <el-icon><ArrowLeft /></el-icon>
+        <el-icon>
+          <ArrowLeft />
+        </el-icon>
       </div>
       <h1>确认订单</h1>
     </div>
@@ -15,21 +17,25 @@
         <div class="address-content" v-if="selectedAddress">
           <div class="address-info">
             <div class="receiver">
-              <span class="name">{{ selectedAddress.receiver_name }}</span>
+              <span class="name">{{ selectedAddress.receiverName }}</span>
               <span class="phone">{{ selectedAddress.phone }}</span>
             </div>
             <div class="address-detail">
-              <el-tag v-if="selectedAddress.is_default" size="small" type="success">
+              <el-tag v-if="selectedAddress.isDefault" size="small" type="success">
                 默认
               </el-tag>
               <span>{{ selectedAddress.address }}</span>
             </div>
           </div>
-          <el-icon><ArrowRight /></el-icon>
+          <el-icon>
+            <ArrowRight />
+          </el-icon>
         </div>
         <div class="no-address" v-else>
           <span>请选择收货地址</span>
-          <el-icon><ArrowRight /></el-icon>
+          <el-icon>
+            <ArrowRight />
+          </el-icon>
         </div>
       </div>
     </div>
@@ -38,24 +44,13 @@
     <div class="delivery-time-section">
       <div class="section-title">送达时间</div>
       <div class="time-options">
-        <div 
-          v-for="time in deliveryTimes" 
-          :key="time.value"
-          class="time-option"
-          :class="{ active: selectedTime === time.value }"
-          @click="selectTime(time.value)"
-        >
+        <div v-for="time in deliveryTimes" :key="time.value" class="time-option"
+          :class="{ active: selectedTime === time.value }" @click="selectTime(time.value)">
           {{ time.label }}
         </div>
       </div>
       <div class="specific-time" v-if="selectedTime === 'specific'">
-        <el-time-select
-          v-model="specificTime"
-          placeholder="选择时间"
-          start="08:00"
-          step="00:30"
-          end="22:00"
-        />
+        <el-time-select v-model="specificTime" placeholder="选择时间" start="08:00" step="00:30" end="22:00" />
       </div>
     </div>
 
@@ -63,12 +58,14 @@
     <div class="restaurant-section">
       <div class="section-title">餐厅信息</div>
       <div class="restaurant-card" @click="goToRestaurant">
-        <img :src="checkoutData.restaurant?.logo_url" class="restaurant-logo" />
+        <img :src="checkoutData.restaurant?.logoUrl" class="restaurant-logo" />
         <div class="restaurant-info">
           <div class="name">{{ checkoutData.restaurant?.name }}</div>
-          <div class="distance">{{ checkoutData.restaurant?.estimated_delivery_time }}分钟送达</div>
+          <div class="distance">{{ checkoutData.restaurant?.estimatedDeliveryTime }}分钟送达</div>
         </div>
-        <el-icon><ArrowRight /></el-icon>
+        <el-icon>
+          <ArrowRight />
+        </el-icon>
       </div>
     </div>
 
@@ -76,20 +73,16 @@
     <div class="order-items-section">
       <div class="section-title">商品清单</div>
       <div class="order-items">
-        <div 
-          v-for="item in checkoutData.items" 
-          :key="item.product_id" 
-          class="order-item"
-        >
+        <div v-for="item in checkoutData.items" :key="item.productId" class="order-item">
           <div class="item-info">
-            <div class="item-name">{{ item.product_name }}</div>
+            <div class="item-name">{{ item.productName }}</div>
             <div class="item-specs" v-if="item.specifications">
               {{ formatSpecifications(item.specifications) }}
             </div>
-            <div class="item-price">¥{{ item.product_price.toFixed(2) }}</div>
+            <div class="item-price">¥{{ (item.productPrice || 0).toFixed(2) }}</div>
           </div>
           <div class="item-quantity">×{{ item.quantity }}</div>
-          <div class="item-total">¥{{ (item.product_price * item.quantity).toFixed(2) }}</div>
+          <div class="item-total">¥{{ ((item.productPrice || 0) * item.quantity).toFixed(2) }}</div>
         </div>
       </div>
     </div>
@@ -97,50 +90,15 @@
     <!-- 订单备注 -->
     <div class="remark-section">
       <div class="section-title">订单备注</div>
-      <el-input
-        v-model="remark"
-        placeholder="口味偏好、配送要求等"
-        type="textarea"
-        rows="2"
-        maxlength="100"
-        show-word-limit
-      />
-    </div>
-
-    <!-- 餐具数量 -->
-    <div class="tableware-section">
-      <div class="section-title">餐具数量</div>
-      <div class="tableware-options">
-        <div class="tableware-label">请选择餐具数量：</div>
-        <el-input-number 
-          v-model="tablewareCount" 
-          :min="0" 
-          :max="10" 
-          size="small"
-        />
-      </div>
-    </div>
-
-    <!-- 发票信息 -->
-    <div class="invoice-section" @click="showInvoiceDialog = true">
-      <div class="section-title">发票信息</div>
-      <div class="invoice-content">
-        <span>{{ invoiceInfo || '不开发票' }}</span>
-        <el-icon><ArrowRight /></el-icon>
-      </div>
+      <el-input v-model="remark" placeholder="口味偏好、配送要求等" type="textarea" rows="2" maxlength="100" show-word-limit />
     </div>
 
     <!-- 支付方式 -->
     <div class="payment-section">
       <div class="section-title">支付方式</div>
       <div class="payment-options">
-        <div 
-          v-for="method in paymentMethods" 
-          :key="method.value"
-          class="payment-option"
-          :class="{ active: paymentMethod === method.value }"
-          @click="selectPaymentMethod(method.value)"
-        >
+        <div v-for="method in paymentMethods" :key="method.value" class="payment-option"
+          :class="{ active: paymentMethod === method.value }" @click="selectPaymentMethod(method.value)">
           <img :src="method.icon" class="method-icon" />
           <span class="method-name">{{ method.name }}</span>
           <el-icon v-if="paymentMethod === method.value" class="method-check">
@@ -151,69 +109,39 @@
     </div>
 
     <!-- 价格明细 -->
-    <div class="price-section">
+    <div class="price-section" v-if="checkoutData.amount">
       <div class="section-title">价格明细</div>
       <div class="price-details">
         <div class="price-item">
           <span>商品金额</span>
-          <span>¥{{ checkoutData.amount?.subtotal.toFixed(2) }}</span>
+          <span>¥{{ (checkoutData.amount.subtotal || 0).toFixed(2) }}</span>
         </div>
         <div class="price-item">
           <span>配送费</span>
-          <span>¥{{ checkoutData.amount?.deliveryFee.toFixed(2) }}</span>
-        </div>
-        <div class="price-item" v-if="checkoutData.amount?.discount > 0">
-          <span>优惠券</span>
-          <span class="discount">-¥{{ checkoutData.amount?.discount.toFixed(2) }}</span>
+          <span>¥{{ (checkoutData.amount.deliveryFee || 0).toFixed(2) }}</span>
         </div>
         <div class="price-item total">
           <span>实付</span>
-          <span class="total-price">¥{{ checkoutData.amount?.total.toFixed(2) }}</span>
+          <span class="total-price">¥{{ (checkoutData.amount.total || 0).toFixed(2) }}</span>
         </div>
       </div>
     </div>
 
     <!-- 底部支付栏 -->
-    <div class="payment-bar">
+    <div class="payment-bar" v-if="checkoutData.amount">
       <div class="price-info">
-        <div class="total-price">¥{{ checkoutData.amount?.total.toFixed(2) }}</div>
-        <div class="detail" v-if="checkoutData.amount?.discount > 0">
-          已优惠¥{{ checkoutData.amount?.discount.toFixed(2) }}
+        <div class="total-price">¥{{ (checkoutData.amount.total || 0).toFixed(2) }}</div>
+        <div class="detail" v-if="(checkoutData.amount.discount || 0) > 0">
+          已优惠¥{{ (checkoutData.amount.discount || 0).toFixed(2) }}
         </div>
       </div>
-      <el-button 
-        type="primary" 
-        size="large" 
-        @click="submitOrder"
-        :loading="submitting"
-        :disabled="!selectedAddress"
-      >
+      <el-button type="primary" size="large" @click="submitOrder" :loading="submitting" :disabled="!selectedAddress">
         {{ submitButtonText }}
       </el-button>
     </div>
-
     <!-- 地址选择对话框 -->
-    <el-dialog
-      v-model="showAddressDialog"
-      title="选择收货地址"
-      width="90%"
-      :before-close="handleAddressDialogClose"
-    >
-      <address-selector 
-        v-model="selectedAddress"
-        @change="handleAddressChange"
-      />
-    </el-dialog>
-
-    <!-- 发票信息对话框 -->
-    <el-dialog
-      v-model="showInvoiceDialog"
-      title="发票信息"
-      width="90%"
-    >
-      <invoice-selector 
-        v-model="invoiceInfo"
-      />
+    <el-dialog v-model="showAddressDialog" title="选择收货地址" width="90%" :before-close="handleAddressDialogClose">
+      <address-selector v-model="selectedAddress" @change="handleAddressChange" />
     </el-dialog>
   </div>
 </template>
@@ -224,7 +152,6 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { ArrowLeft, ArrowRight, CircleCheck } from '@element-plus/icons-vue'
 import AddressSelector from './Selector/AddressSelector.vue'
-import InvoiceSelector from './Selector/InvoiceSelector.vue'
 import api from '../api/index'
 
 const router = useRouter()
@@ -247,14 +174,13 @@ const paymentMethod = ref('alipay')
 const submitting = ref(false)
 
 const showAddressDialog = ref(false)
-const showInvoiceDialog = ref(false)
 
 // 支付方式配置
 const paymentMethods = ref([
-  { value: 'alipay', name: '支付宝支付', icon: require('@/assets/payment/alipay.png') },
-  { value: 'wechat', name: '微信支付', icon: require('@/assets/payment/wechat.png') },
-  { value: 'balance', name: '余额支付', icon: require('@/assets/payment/balance.png') },
-  { value: 'cash', name: '货到付款', icon: require('@/assets/payment/cash.png') }
+  { value: 'alipay', name: '支付宝支付', icon: '/assets/payment/alipay.png' },
+  { value: 'wechat', name: '微信支付', icon: '/assets/payment/wechat.png' },
+  { value: 'balance', name: '余额支付', icon: '/assets/payment/balance.png' },
+  { value: 'cash', name: '货到付款', icon: '/assets/payment/cash.png' }
 ])
 
 // 计算属性
@@ -269,13 +195,33 @@ const submitButtonText = computed(() => {
 const initData = () => {
   const data = JSON.parse(localStorage.getItem('checkout_data') || '{}')
   checkoutData.value = data
-  
+
   if (!data.items || data.items.length === 0) {
     ElMessage.error('购物车为空')
     router.push('/cart')
     return
   }
-  
+  console.log(checkoutData.value);
+
+  // 确保关键对象存在
+  if (!data.restaurant) checkoutData.value.restaurant = {}
+  if (!data.amount) {
+    checkoutData.value.amount = {
+      subtotal: 0,
+      deliveryFee: 0,
+      discount: 0,
+      total: 0
+    }
+  }
+
+  // 确保每个商品项都有product_price
+  if (data.items) {
+    checkoutData.value.items = data.items.map(item => ({
+      ...item,
+      product_price: item.product_price || 0
+    }))
+  }
+
   // 获取默认地址
   getDefaultAddress()
 }
@@ -330,34 +276,42 @@ const submitOrder = async () => {
     ElMessage.warning('请选择收货地址')
     return
   }
-  
+
   submitting.value = true
-  
+
   try {
     const orderData = {
-      restaurant_id: checkoutData.value.restaurant?.restaurant_id,
-      items: checkoutData.value.items.map(item => ({
-        product_id: item.product_id,
+    restaurantId: checkoutData.value.restaurant?.restaurantId,
+    items: checkoutData.value.items.map(item => ({
+        productId: item.productId,
         quantity: item.quantity,
+        productName: item.productName,
+        price: item.productPrice,
+        totalPrice: item.totalPrice,
         specifications: item.specifications
-      })),
-      delivery_address: selectedAddress.value.address,
-      delivery_phone: selectedAddress.value.phone,
-      delivery_name: selectedAddress.value.receiver_name,
-      remark: remark.value,
-      delivery_time: selectedTime.value === 'specific' ? specificTime.value : selectedTime.value,
-      tableware_count: tablewareCount.value,
-      invoice_info: invoiceInfo.value,
-      payment_method: paymentMethod.value,
-      coupon_id: checkoutData.value.coupon?.coupon_id
-    }
-    
+    })),
+    deliveryAddress: selectedAddress.value.address,
+    deliveryPhone: selectedAddress.value.phone,
+    deliveryName: selectedAddress.value.receiverName,
+    note: remark.value,
+    finalAmount: checkoutData.value.amount?.total || 0,
+    discountAmount: checkoutData.value.amount?.discount || 0,
+    deliveryFee: checkoutData.value.amount?.deliveryFee || 0,
+    deliveryTime: selectedTime.value === 'specific' ? specificTime.value : selectedTime.value,
+    tablewareCount: tablewareCount.value,
+    totalAmount: checkoutData.value.amount?.total || 0,
+    invoiceInfo: invoiceInfo.value,
+    paymentMethod: paymentMethod.value,
+    couponId: checkoutData.value.coupon?.couponId
+};
+console.log(orderData);
+
     const res = await api.order.createOrder(orderData)
-    
-    if (res.code === 200) {
+
+    if (res.data) {
       // 清空购物车数据
       localStorage.removeItem('checkout_data')
-      
+
       // 根据支付方式处理
       if (paymentMethod.value === 'alipay' || paymentMethod.value === 'wechat') {
         // 跳转到支付页面
@@ -366,7 +320,7 @@ const submitOrder = async () => {
         // 跳转到订单详情页面
         router.push(`/order/${res.data.order_id}`)
       }
-      
+
       ElMessage.success('订单提交成功')
     } else {
       ElMessage.error(res.message || '提交订单失败')

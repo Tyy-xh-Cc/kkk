@@ -5,9 +5,6 @@
 
     <!-- 顶部标题 -->
     <div class="page-header">
-      <div class="back-btn" @click="router.back()">
-        <el-icon><ArrowLeft /></el-icon>
-      </div>
       <h1>购物车</h1>
       <div class="header-actions">
         <el-button 
@@ -33,14 +30,14 @@
     <!-- 购物车列表 -->
     <div v-else class="cart-content">
       <!-- 餐厅信息 -->
-      <div class="restaurant-info" v-if="restaurantInfo">
+      <div class="restaurant-info" v-if="restaurantInfo  ">
         <div class="restaurant-header">
-          <img :src="restaurantInfo.logo_url" class="restaurant-logo" />
+          <img :src="restaurantInfo.logoUrl" class="restaurant-logo" />
           <div class="restaurant-details">
             <div class="name">{{ restaurantInfo.name }}</div>
             <div class="delivery-info">
-              <span>¥{{ restaurantInfo.delivery_fee }}配送费</span>
-              <span>¥{{ restaurantInfo.min_order_amount }}起送</span>
+              <span>¥{{ restaurantInfo.deliveryFee }}配送费</span>
+              <span>¥{{ restaurantInfo.minOrderAmount }}起送</span>
             </div>
           </div>
         </div>
@@ -50,11 +47,11 @@
       <div class="cart-items">
         <div 
           v-for="item in cartItems" 
-          :key="item.cart_item_id" 
+          :key="item.id" 
           class="cart-item"
         >
           <div class="item-select" @click="toggleSelect(item)">
-            <el-icon v-if="selectedItems.includes(item.cart_item_id)">
+            <el-icon v-if="selectedItems.includes(item.id)">
               <CircleCheck />
             </el-icon>
             <el-icon v-else>
@@ -63,14 +60,14 @@
           </div>
           <div class="item-content">
             <div class="item-image">
-              <img :src="item.product_image || defaultProductImage" />
+              <img :src="item.productImageUrl || defaultProductImage" />
             </div>
             <div class="item-info">
-              <div class="item-name">{{ item.product_name }}</div>
+              <div class="item-name">{{ item.productName }}</div>
               <div class="item-specs" v-if="item.specifications">
                 {{ formatSpecifications(item.specifications) }}
               </div>
-              <div class="item-price">¥{{ item.product_price.toFixed(2) }}</div>
+             <div class="item-price">¥{{ formatPrice(item.productPrice) }}</div>
             </div>
             <div class="item-actions">
               <div class="quantity-control">
@@ -91,7 +88,7 @@
                   <el-icon><Plus /></el-icon>
                 </el-button>
               </div>
-              <div class="item-total">¥{{ (item.product_price * item.quantity).toFixed(2) }}</div>
+             <div class="item-total">¥{{ formatPrice(item.productPrice * item.quantity) }}</div>
             </div>
           </div>
           <div class="item-delete">
@@ -99,7 +96,7 @@
               type="danger" 
               size="small" 
               circle
-              @click="removeItem(item.cart_item_id)"
+              @click="removeItem(item.id)"
             >
               <el-icon><Delete /></el-icon>
             </el-button>
@@ -184,7 +181,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
-  ArrowLeft, ShoppingCart, CircleCheck, 
+  ShoppingCart, CircleCheck, 
   Minus, Plus, Delete, Loading 
 } from '@element-plus/icons-vue'
 import api from '../api/index.js'
@@ -197,7 +194,7 @@ const restaurantInfo = ref(null)
 const selectedItems = ref([])
 const remark = ref('')
 const loading = ref(false)
-const defaultProductImage = 'https://via.placeholder.com/100x100?text=Product'
+const defaultProductImage = ''
 
 // 计算属性
 const allSelected = computed(() => {
@@ -205,27 +202,25 @@ const allSelected = computed(() => {
 })
 
 const selectedItemsList = computed(() => {
-  return cartItems.value.filter(item => selectedItems.value.includes(item.cart_item_id))
+  return cartItems.value.filter(item => selectedItems.value.includes(item.id))
 })
 
 const subtotal = computed(() => {
   return selectedItemsList.value.reduce((sum, item) => {
-    return sum + (item.product_price * item.quantity)
+    return sum + (item.productPrice * item.quantity)
   }, 0)
 })
 
 const deliveryFee = computed(() => {
-  return restaurantInfo.value?.delivery_fee || 0
+  return restaurantInfo.value?.deliveryFee || 0
 })
 
 const minOrderAmount = computed(() => {
-  return restaurantInfo.value?.min_order_amount || 0
+  return restaurantInfo.value?.minOrderAmount || 0
 })
 
 const selectedTotal = computed(() => {
-  return selectedItemsList.value.reduce((sum, item) => {
-    return sum + (item.product_price * item.quantity)
-  }, 0)
+  return subtotal.value 
 })
 
 const finalAmount = computed(() => {
@@ -242,7 +237,12 @@ const checkoutButtonText = computed(() => {
   }
   return `去结算`
 })
-
+const formatPrice = (price) => {
+  if (price === null || price === undefined || isNaN(price)) {
+    return '0.00'
+  }
+  return Number(price).toFixed(2)
+}
 // API: 获取购物车列表
 const getCartItems = async () => {
   loading.value = true
@@ -250,11 +250,11 @@ const getCartItems = async () => {
     const res = await api.cart.getCartItems()
     if (res.data) {
       cartItems.value = res.data.items || []
-      restaurantInfo.value = res.data.restaurant || null
-      
-      // 如果有默认选中的商品，初始选中状态
+      restaurantInfo.value = res.data.items[0].restaurant || null
+
+
       if (cartItems.value.length > 0) {
-        selectedItems.value = cartItems.value.map(item => item.cart_item_id)
+        selectedItems.value = cartItems.value.map(item => item.id)
       }
     }
   } catch (error) {
@@ -268,7 +268,7 @@ const getCartItems = async () => {
 // API: 更新商品数量
 const updateQuantity = async (item, newQuantity) => {
   try {
-    await api.cart.updateCartItemQuantity(item.cart_item_id, { quantity: newQuantity })
+    await api.cart.updateCartItemQuantity(item.id, newQuantity )
     item.quantity = newQuantity
   } catch (error) {
     ElMessage.error('更新失败')
@@ -289,6 +289,7 @@ const removeItem = async (itemId) => {
     cartItems.value = cartItems.value.filter(item => item.cart_item_id !== itemId)
     selectedItems.value = selectedItems.value.filter(id => id !== itemId)
     ElMessage.success('删除成功')
+    getCartItems();
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error('删除失败')
@@ -343,7 +344,7 @@ const toggleSelectAll = () => {
   if (allSelected.value) {
     selectedItems.value = []
   } else {
-    selectedItems.value = cartItems.value.map(item => item.cart_item_id)
+    selectedItems.value = cartItems.value.map(item => item.id)
   }
 }
 
@@ -782,5 +783,8 @@ onMounted(() => {
   .main-content {
     padding-left: 220px; /* 为侧边导航栏留出空间 */
   }
+}
+.cart-page {
+  padding-left: 220px; /* 为侧边导航栏留出空间 */
 }
 </style>

@@ -3,9 +3,11 @@
     :model-value="visible"
     :title="safeProduct.name"
     width="90%"
-    :close-on-click-modal="false"
-    :close-on-press-escape="false"
+    :close-on-click-modal="true"  
+    :close-on-press-escape="true"  
+    :show-close="true" 
     @update:model-value="$emit('update:visible', $event)"
+    @close="closeDialog"  
     class="product-dialog"
   >
     <div class="product-detail">
@@ -69,17 +71,19 @@
         </div>
       </div>
       
-      <!-- 底部操作 -->
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button @click="closeDialog">取消</el-button>
-          <el-button type="primary" @click="addToCart" :disabled="quantity > (product.stock || 999)">
-            添加到购物车
-          </el-button>
-        </div>
-      </template>
-    </el-dialog>
-  </template>
+ <!-- 底部操作 -->
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button type="primary" @click="addToCart" :disabled="quantity > (product.stock || 999)">
+          添加到购物车
+        </el-button>
+         <el-button type="success" @click="buyNow" :disabled="quantity > (product.stock || 999)">
+          直接购买
+        </el-button>
+      </div>
+    </template>
+  </el-dialog>
+</template>
   
   <script setup>
   import { ref, computed, watch } from 'vue'
@@ -96,9 +100,8 @@
       default: () => ({})
     }
   })
-  
   // Emits
-  const emit = defineEmits(['update:visible', 'add-to-cart'])
+  const emit = defineEmits(['update:visible', 'add-to-cart', 'buy-now'])
   
   // 数据
   const quantity = ref(1)
@@ -117,7 +120,7 @@ watch(() => props.product, (newProduct) => {
   const closeDialog = () => {
     emit('update:visible', false)
   }
-  // 添加安全访问产品属性的计算属性
+
 const safeProduct = computed(() => {
   return props.product || {}
 })
@@ -148,9 +151,42 @@ const safeProduct = computed(() => {
     // 显示成功消息
     ElMessage.success('已添加到购物车')
   }
+  // 直接购买
+const buyNow = () => {
+  // 检查库存
+  if (props.product.stock !== undefined && quantity.value > props.product.stock) {
+    ElMessage.warning('库存不足')
+    return
+  }
+  
+  // 准备直接购买的数据
+  const orderItem = {
+    productId: props.product.id,
+    name: props.product.name,
+    price: props.product.price,
+    imageUrl: props.product.imageUrl,
+    quantity: quantity.value,
+    optionId: selectedOption.value
+  }
+  
+  // 发送直接购买事件
+  emit('buy-now', orderItem)
+  
+  // 关闭对话框
+  closeDialog()
+  
+  // 显示成功消息
+  ElMessage.success('即将跳转到结算页面')
+}
   </script>
   
   <style scoped>
+    .dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 10px 0;
+}
   .product-dialog {
     .product-detail {
       display: flex;

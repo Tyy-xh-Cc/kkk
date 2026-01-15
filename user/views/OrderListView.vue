@@ -121,7 +121,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { ArrowLeft, Document, Loading } from '@element-plus/icons-vue'
+import { Document, Loading } from '@element-plus/icons-vue'
 import api from '../api/index.js'
 import NavSide from './NavSide.vue'
 const router = useRouter()
@@ -141,7 +141,7 @@ const loading = ref(false)
 const hasMore = ref(true)
 const page = ref(1)
 const pageSize = 10
-const defaultProductImage = 'https://via.placeholder.com/80x80?text=商品'
+const defaultProductImage = ''
 
 // API: 获取订单列表
 const getOrders = async () => {

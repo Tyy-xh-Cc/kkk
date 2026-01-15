@@ -41,24 +41,17 @@
       </div>
     </div>
 
-    <!-- 优惠活动 -->
-    <div class="promotions" v-if="promotions.length > 0">
-      <div class="promotion-item" v-for="promotion in promotions" :key="promotion.id">
-        <el-tag :type="promotion.type" size="small">{{ promotion.title }}</el-tag>
-        <span class="promotion-desc">{{ promotion.description }}</span>
-      </div>
-    </div>
-
+ 
     <!-- 分类导航（吸顶） -->
     <div class="category-nav" :class="{ sticky: isSticky }" ref="navRef">
       <div class="nav-content">
         <div class="category-tabs">
           <div 
             v-for="category in categories" 
-            :key="category.category_id"
+            :key="category.id"
             class="category-tab"
-            :class="{ active: activeCategory === category.category_id }"
-            @click="scrollToCategory(category.category_id)"
+            :class="{ active: activeCategory === category.id }"
+            @click="scrollToCategory(category.id)"
           >
             {{ category.name }}
           </div>
@@ -66,21 +59,21 @@
       </div>
     </div>
 
-    <!-- 商品区域 -->
+   <!-- 商品区域 -->
     <div class="product-area">
       <div 
         v-for="category in categories" 
-        :key="category.category_id" 
+        :key="category.id" 
         class="category-section"
-        :ref="el => categoryRefs[category.category_id] = el"
+        :ref="el => categoryRefs[category.id] = el"
       >
-        <div class="category-title" :id="`category-${category.category_id}`">
+        <div class="category-title" :id="`category-${category.id}`">
           {{ category.name }}
         </div>
         <div class="product-list">
           <div 
-            v-for="product in getProductsByCategory(category.category_id)" 
-            :key="product.product_id"
+            v-for="product in getProductsByCategory(category.id)" 
+            :key="product.id" 
             class="product-item"
           >
             <div class="product-image" @click="showProductDetail(product)">
@@ -109,7 +102,7 @@
                 size="small" 
                 circle
                 @click.stop="addToCart(product)"
-                :disabled="isProductInCart(product.product_id)"
+                :disabled="isProductInCart(product.id)"  
               >
                 <el-icon><Plus /></el-icon>
               </el-button>
@@ -135,13 +128,13 @@
       @checkout="goToCheckout"
       @show-cart="showCart"
     />
-
-    <!-- 商品详情弹窗 -->
-    <product-dialog 
-      v-model="showProductDialog"
-      :product="selectedProduct"
-      @add-to-cart="handleAddToCart"
-    />
+  <!-- 商品详情弹窗 -->
+<product-dialog 
+  v-model="showProductDialog"
+  :product="selectedProduct"
+  @add-to-cart="handleAddToCart"
+  @buy-now="handleBuyNow"
+/>
 
     <!-- 评价区域 -->
     <div class="reviews-section" v-if="reviews.length > 0">
@@ -181,7 +174,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { ArrowLeft, Star, StarFilled, Share, Location, Clock, Plus } from '@element-plus/icons-vue'
+import { ArrowLeft, Location, Clock, Plus } from '@element-plus/icons-vue'
 import CartBottom from './CartBottom.vue'
 import ProductDialog from './Dialog/ProductDialog.vue'
 import api from '../api/index'
@@ -194,7 +187,6 @@ const restaurantId = route.params.id
 const restaurant = ref({})
 const categories = ref([])
 const products = ref([])
-const promotions = ref([])
 const reviews = ref([])
 const cartItems = ref([])
 const activeCategory = ref(null)
@@ -219,7 +211,6 @@ const getRestaurantDetail = async () => {
     const res = await api.restaurant.getRestaurantDetail(restaurantId)
     restaurant.value = res.data.userInfo|| {}
     console.log('获取餐厅详情:', restaurant.value);
-    
   } catch (error) {
     ElMessage.error('获取餐厅信息失败')
     console.error('获取餐厅信息失败:', error)
@@ -229,13 +220,13 @@ const getRestaurantDetail = async () => {
 // API: 获取分类列表
 const getCategories = async () => {
   try {
-    const res = await api.restaurant.getRestaurantCategories(restaurantId)
-    // 确保res.data是数组，然后过滤掉null或undefined值
+    const res = await api.restaurant.getRestaurantCategories(restaurantId) 
     const categoriesData = Array.isArray(res.data) ? res.data : []
-    categories.value = categoriesData.filter(category => category)
+    categories.value = categoriesData;
     if (categories.value.length > 0) {
-      activeCategory.value = categories.value[0].category_id
+      activeCategory.value = categories.value[0].id || categories.value[0].id
     }
+    console.log('分类数据:', categories.value);
   } catch (error) {
     console.error('获取分类信息失败:', error)
   }
@@ -247,12 +238,12 @@ const getProducts = async () => {
     const res = await api.restaurant.getRestaurantProducts(restaurantId)
     products.value = res.data.userInfo || []
     console.log('获取商品列表:', products.value);
-    
   } catch (error) {
     ElMessage.error('获取商品列表失败')
     console.error('获取商品列表失败:', error)
   }
 }
+
 // API: 获取购物车商品
 const getCartItems = async () => {
   try {
@@ -263,20 +254,22 @@ const getCartItems = async () => {
   }
 }
 
-// API: 添加商品到购物车
 const addToCart = async (product) => {
   try {
-    const data = {
-      product_id: product.product_id,
-      restaurant_id: restaurantId,
-      quantity: 1,
-      specifications: {}
-    }
+    console.log('添加商品:', product);
     
+    // 检查购物车中是否已存在该商品
+    const existingItem = cartItems.value.find(item => item.product_id === product.product_id)
+    
+    const data = {
+      productId: product.productId|| product.id,  // 修复字段名I
+      restaurant_id: restaurantId,
+      quantity:  product.quantity || 1,
+    }
     const res = await api.cart.addToCart(data)
     
-    if (res.code === 200) {
-      ElMessage.success('添加成功')
+    if (res.data) {
+      ElMessage.success(existingItem ? '数量已增加' : '添加成功')
       getCartItems()
       cartBottomRef.value.refreshCart()
     }
@@ -288,12 +281,12 @@ const addToCart = async (product) => {
 
 // 获取分类下的商品
 const getProductsByCategory = (categoryId) => {
-  return products.value.filter(p => p.category_id === categoryId && p.status !== 'hidden')
+  return products.value.filter(p => p.categoryId === categoryId && p.status !== 'hidden')
 }
 
 // 商品是否在购物车中
 const isProductInCart = (productId) => {
-  return cartItems.value.some(item => item.product_id === productId)
+  return cartItems.value.some(item => item.id === productId)
 }
 
 // 显示商品详情
@@ -301,18 +294,49 @@ const showProductDetail = (product) => {
   selectedProduct.value = product
   showProductDialog.value = true
 }
+// 处理直接购买
+const handleBuyNow = (orderItem) => {
+  console.log('直接购买商品:', orderItem)
+}
 
+// 跳转到结算页面
+const goToCheckout = () => {
+   router.push('/checkout')
+  
+}
 // 处理添加购物车（从商品详情弹窗）
 const handleAddToCart = (product) => {
   addToCart(product)
 }
 
-// 滚动到分类
+// 修复滚动到分类函数
 const scrollToCategory = (categoryId) => {
+  console.log('滚动到分类:', categoryId)
+  console.log('categoryRefs:', categoryRefs.value)
+  
+  // 方法1：使用 ref 获取元素
   const element = categoryRefs.value[categoryId]
   if (element) {
-    element.scrollIntoView({ behavior: 'smooth' })
+    console.log('通过ref找到元素')
+    element.scrollIntoView({ 
+      behavior: 'smooth', 
+      block: 'start' 
+    })
+    return
   }
+  
+  // 方法2：使用 id 获取元素
+  const idElement = document.getElementById(`category-${categoryId}`)
+  if (idElement) {
+    console.log('通过id找到元素')
+    idElement.scrollIntoView({ 
+      behavior: 'smooth', 
+      block: 'start' 
+    })
+    return
+  }
+  
+  console.log('未找到元素，categoryId:', categoryId)
 }
 
 // 处理滚动
@@ -325,11 +349,11 @@ const handleScroll = () => {
   // 滚动时高亮当前分类
   if (categories.value.length > 0) {
     for (const category of categories.value) {
-      const element = categoryRefs.value[category.category_id]
+      const element = categoryRefs.value[category.id || category.id]
       if (element) {
         const rect = element.getBoundingClientRect()
         if (rect.top <= 150 && rect.bottom >= 150) {
-          activeCategory.value = category.category_id
+          activeCategory.value = category.id || category.id
           break
         }
       }
@@ -373,29 +397,6 @@ const formatTime = (time) => {
   } else {
     return date.toLocaleDateString()
   }
-}
-
-// 分享餐厅
-
-// 图片预览
-const previewImage = (images, index) => {
-  // 这里可以集成图片预览组件
-  console.log('预览图片:', images, index)
-}
-
-// 查看所有评价
-const viewAllReviews = () => {
-  router.push(`/restaurant/${restaurantId}/reviews`)
-}
-
-// 去结算
-const goToCheckout = () => {
-  router.push('/checkout')
-}
-
-// 显示购物车
-const showCart = () => {
-  router.push('/cart')
 }
 
 // 初始化

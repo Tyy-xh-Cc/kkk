@@ -90,13 +90,11 @@ import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
 import {
-  Odometer,
   Van,
   Shop,
   Goods,
   Tickets,
   User,
-  Setting,
   SwitchButton,
   Expand,
   Fold,
@@ -142,8 +140,6 @@ const handleLogout = () => {
     cancelButtonText: '取消',
     type: 'warning'
   }).then(() => {
-    // 接口标注：退出登录接口
-    // await axios.post('/api/auth/logout')
     localStorage.removeItem('token')
     router.push('/login')
   }).catch(() => {})

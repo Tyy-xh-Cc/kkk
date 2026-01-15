@@ -12,6 +12,8 @@ export default {
   
   // 添加商品到购物车
   addToCart(data) {
+    console.log(data);
+    
     return request({
       url: '/api/cart/items',
       method: 'post',
@@ -20,11 +22,10 @@ export default {
   },
   
   // 更新购物车商品数量
-  updateCartItemQuantity(itemId, data) {
+  updateCartItemQuantity(itemId, quantity) {
     return request({
-      url: `/api/cart/items/${itemId}`,
+      url: `/api/cart/items/${itemId}?quantity=${quantity}`,
       method: 'put',
-      data
     })
   },
   
@@ -40,7 +41,7 @@ export default {
   clearCart() {
     return request({
       url: '/api/cart/clear',
-      method: 'post'
+      method: 'delete'
     })
   },
   
