@@ -15,7 +15,7 @@
     <div class="delivery-section">
       <div class="delivery-status">
         <el-steps :active="statusStep" finish-status="success" align-center>
-          <el-step title="待支付" v-if="order.payment_status === 'pending'" />
+          <el-step title="待支付" v-if="order.paymentStatus === 'pending'" />
           <el-step title="待接单" :icon="Check" />
           <el-step title="备餐中" :icon="Food" />
           <el-step title="配送中" :icon="Van" />
@@ -23,7 +23,7 @@
         </el-steps>
       </div>
 
-      <div class="delivery-info" v-if="deliveryInfo">
+      <!-- <div class="delivery-info" v-if="deliveryInfo">
         <div class="delivery-person">
           <div class="person-info">
             <img :src="deliveryInfo.delivery_person_avatar || defaultAvatar" class="avatar" />
@@ -58,19 +58,19 @@
         
         <div class="delivery-timeline">
           <div class="timeline-item" v-if="order.confirmed_at">
-            <div class="timeline-time">{{ formatTime(order.confirmed_at) }}</div>
+            <div class="timeline-time">{{ formatTime(order.confirmedAt) }}</div>
             <div class="timeline-content">商家已接单</div>
           </div>
           <div class="timeline-item" v-if="order.prepared_at">
-            <div class="timeline-time">{{ formatTime(order.prepared_at) }}</div>
+            <div class="timeline-time">{{ formatTime(order.preparedAt) }}</div>
             <div class="timeline-content">商家已备餐完成</div>
           </div>
           <div class="timeline-item" v-if="deliveryInfo.pickup_time">
-            <div class="timeline-time">{{ formatTime(deliveryInfo.pickup_time) }}</div>
+            <div class="timeline-time">{{ formatTime(deliveryInfo.pickupTime) }}</div>
             <div class="timeline-content">骑手已取餐</div>
           </div>
           <div class="timeline-item" v-if="deliveryInfo.delivered_time">
-            <div class="timeline-time">{{ formatTime(deliveryInfo.delivered_time) }}</div>
+            <div class="timeline-time">{{ formatTime(deliveryInfo.deliveredTime) }}</div>
             <div class="timeline-content">已送达</div>
           </div>
         </div>
@@ -81,7 +81,7 @@
             实时追踪
           </el-button>
         </div>
-      </div>
+      </div> -->
     </div>
 
     <!-- 地址信息 -->
@@ -89,10 +89,10 @@
       <div class="section-title">收货地址</div>
       <div class="address-content">
         <div class="receiver">
-          <span class="name">{{ order.delivery_name }}</span>
-          <span class="phone">{{ order.delivery_phone }}</span>
+          <span class="name">{{ order.deliveryName }}</span>
+          <span class="phone">{{ order.deliveryPhone }}</span>
         </div>
-        <div class="address">{{ order.delivery_address }}</div>
+        <div class="address">{{ order.deliveryAddress }}</div>
       </div>
     </div>
 
@@ -100,9 +100,9 @@
     <div class="restaurant-section">
       <div class="section-title">餐厅信息</div>
       <div class="restaurant-card" @click="goToRestaurant">
-        <img :src="restaurant?.logo_url || defaultRestaurantImage" class="restaurant-logo" />
+        <img :src="restaurant?.logoUrl || defaultRestaurantImage" class="restaurant-logo" />
         <div class="restaurant-info">
-          <div class="name">{{ restaurant?.name }}</div>
+          <div class="name">{{ restaurant?.restaurantName }}</div>
           <div class="contact-info">
             <el-icon><Phone /></el-icon>
             <span>{{ restaurant?.phone }}</span>
@@ -116,38 +116,38 @@
     <div class="order-items-section">
       <div class="section-title">订单商品</div>
       <div class="order-items">
-        <div v-for="item in orderItems" :key="item.order_item_id" class="order-item">
+        <div v-for="item in orderItems" :key="order.orderId" class="order-item">
           <div class="item-image">
-            <img :src="item.product_image || defaultProductImage" />
+            <img :src="item.productImage || defaultProductImage" />
           </div>
           <div class="item-info">
-            <div class="item-name">{{ item.product_name }}</div>
+            <div class="item-name">{{ item.productName }}</div>
             <div class="item-specs" v-if="item.specifications">
               {{ formatSpecifications(item.specifications) }}
             </div>
-            <div class="item-price">¥{{ item.unit_price.toFixed(2) }}</div>
+            <div class="item-price">¥{{ item.unitPrice.toFixed(2) }}</div>
           </div>
           <div class="item-quantity">×{{ item.quantity }}</div>
-          <div class="item-total">¥{{ item.total_price.toFixed(2) }}</div>
+          <div class="item-total">¥{{ item.totalPrice.toFixed(2) }}</div>
         </div>
       </div>
 
       <div class="order-summary">
         <div class="summary-item">
           <span>商品金额</span>
-          <span>¥{{ order.total_amount?.toFixed(2) }}</span>
+          <span>¥{{ order.totalAmount?.toFixed(2) }}</span>
         </div>
         <div class="summary-item">
           <span>配送费</span>
-          <span>¥{{ order.delivery_fee?.toFixed(2) }}</span>
+          <span>¥{{ order.deliveryFee?.toFixed(2) }}</span>
         </div>
-        <div class="summary-item" v-if="order.discount_amount > 0">
+        <div class="summary-item" v-if="order.discountAmount > 0">
           <span>优惠</span>
-          <span class="discount">-¥{{ order.discount_amount?.toFixed(2) }}</span>
+          <span class="discount">-¥{{ order.discountAmount?.toFixed(2) }}</span>
         </div>
         <div class="summary-item total">
           <span>实付</span>
-          <span class="total-price">¥{{ order.final_amount?.toFixed(2) }}</span>
+          <span class="total-price">¥{{ order.finalAmount?.toFixed(2) }}</span>
         </div>
       </div>
     </div>
@@ -158,32 +158,32 @@
       <div class="info-grid">
         <div class="info-item">
           <span class="label">订单编号</span>
-          <span class="value">{{ order.order_id }}</span>
+          <span class="value">{{ order.orderId }}</span>
         </div>
         <div class="info-item">
           <span class="label">下单时间</span>
-          <span class="value">{{ formatTime(order.created_at) }}</span>
+          <span class="value">{{ formatTime(order.createdAt) }}</span>
         </div>
-        <div class="info-item" v-if="order.paid_at">
+        <div class="info-item" v-if="order.paidAt">
           <span class="label">支付时间</span>
-          <span class="value">{{ formatTime(order.paid_at) }}</span>
+          <span class="value">{{ formatTime(order.paidAt) }}</span>
         </div>
-        <div class="info-item" v-if="order.completed_at">
+        <div class="info-item" v-if="order.completedAt">
           <span class="label">完成时间</span>
-          <span class="value">{{ formatTime(order.completed_at) }}</span>
+          <span class="value">{{ formatTime(order.completedAt) }}</span>
         </div>
-        <div class="info-item" v-if="order.cancelled_at">
+        <div class="info-item" v-if="order.cancelledAt">
           <span class="label">取消时间</span>
-          <span class="value">{{ formatTime(order.cancelled_at) }}</span>
+          <span class="value">{{ formatTime(order.cancelledAt) }}</span>
         </div>
         <div class="info-item">
           <span class="label">支付方式</span>
-          <span class="value">{{ getPaymentMethodText(order.payment_method) }}</span>
+          <span class="value">{{ getPaymentMethodText(order.paymentMethod) }}</span>
         </div>
         <div class="info-item">
           <span class="label">支付状态</span>
-          <span class="value" :class="getPaymentStatusClass(order.payment_status)">
-            {{ getPaymentStatusText(order.payment_status) }}
+          <span class="value" :class="getPaymentStatusClass(order.paymentStatus)">
+            {{ getPaymentStatusText(order.paymentStatus) }}
           </span>
         </div>
         <div class="info-item" v-if="order.note">
@@ -244,22 +244,6 @@
       :amount="order.final_amount"
       @success="handlePaymentSuccess"
     />
-
-    <!-- 评价弹窗 -->
-    <rating-dialog 
-      v-model="showRatingDialog"
-      :order-id="order.order_id"
-      :restaurant-id="restaurant?.restaurant_id"
-      @success="handleRatingSuccess"
-    />
-
-    <!-- 骑手评价弹窗 -->
-    <delivery-rating-dialog 
-      v-model="showDeliveryRatingDialog"
-      :delivery-id="deliveryInfo?.delivery_id"
-      :order-id="order.order_id"
-      @success="handleDeliveryRatingSuccess"
-    />
   </div>
 </template>
 
@@ -268,11 +252,9 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
-  ArrowLeft, Check, Food, Van, Location, Phone, ArrowRight 
+  ArrowLeft, Check, Food, Van, Phone, ArrowRight 
 } from '@element-plus/icons-vue'
 import PaymentDialog from './Dialog/PaymentDialog.vue'
-import RatingDialog from './Dialog/RatingDialog.vue'
-import DeliveryRatingDialog from './Dialog/DeliveryRatingDialog.vue'
 import api from '../api/index'
 
 const route = useRoute()
@@ -289,9 +271,8 @@ const showRatingDialog = ref(false)
 const showDeliveryRatingDialog = ref(false)
 
 // 默认图片
-const defaultAvatar = 'https://via.placeholder.com/50x50?text=骑手'
-const defaultRestaurantImage = 'https://via.placeholder.com/50x50?text=餐厅'
-const defaultProductImage = 'https://via.placeholder.com/80x80?text=商品'
+const defaultRestaurantImage = ''
+const defaultProductImage = ''
 
 // 计算属性
 const statusStep = computed(() => {
@@ -317,26 +298,17 @@ const getOrderDetail = async () => {
   try {
     const res = await api.order.getOrderDetail(orderId)
     if (res.data) {
-      order.value = res.data.order || {}
-      orderItems.value = res.data.items || []
-      restaurant.value = res.data.restaurant || {}
+      order.value = res.data || {}
+      orderItems.value = res.data.orderItems || []
+
+      restaurant.value = await (await api.restaurant.getRestaurantDetail(res.data.restaurantId)).data.userInfo;
       deliveryInfo.value = res.data.delivery || null
     }
+    console.log(restaurant.value);
+    
   } catch (error) {
     ElMessage.error('获取订单详情失败')
     console.error('获取订单详情失败:', error)
-  }
-}
-
-// API: 获取配送信息
-const getDeliveryInfo = async () => {
-  try {
-    const res = await api.delivery.getDeliveryInfo(orderId)
-    if (res.data) {
-      deliveryInfo.value = res.data
-    }
-  } catch (error) {
-    console.error('获取配送信息失败:', error)
   }
 }
 
@@ -355,7 +327,7 @@ const cancelOrder = async () => {
     })
     
     const res = await api.order.cancelOrder(orderId)
-    if (res.code === 200) {
+    if (res.data) {
       ElMessage.success('订单已取消')
       getOrderDetail()
     } else {
@@ -373,19 +345,14 @@ const rateOrder = () => {
   showRatingDialog.value = true
 }
 
-// API: 评价骑手
-const rateDeliveryPerson = () => {
-  showDeliveryRatingDialog.value = true
-}
-
 // API: 再来一单
 const reorder = async () => {
   try {
     const res = await api.order.reorder(orderId)
-    if (res.code === 200) {
+    if (res.data) {
       // 跳转到购物车或餐厅页面
-      if (restaurant.value?.restaurant_id) {
-        router.push(`/restaurant/${restaurant.value.restaurant_id}`)
+      if (restaurant.value?.restaurantId) {
+        router.push(`/restaurant/${restaurant.value.restaurantId}`)
       } else {
         router.push('/cart')
       }
@@ -404,7 +371,7 @@ const formatSpecifications = (specs) => {
   if (!specs) return ''
   try {
     const parsed = JSON.parse(specs)
-    return Object.values(parsed).join('，')
+    return Object.values(parsed).join('/')
   } catch {
     return specs
   }
@@ -480,30 +447,12 @@ const getPaymentStatusClass = (status) => {
   return classes[status] || ''
 }
 
-// 联系骑手
-const contactDeliveryPerson = () => {
-  if (deliveryInfo.value?.delivery_person_phone) {
-    window.location.href = `tel:${deliveryInfo.value.delivery_person_phone}`
-  } else {
-    ElMessage.info('骑手电话不可用')
-  }
-}
-
 // 联系餐厅
 const contactRestaurant = () => {
   if (restaurant.value?.phone) {
     window.location.href = `tel:${restaurant.value.phone}`
   } else {
     ElMessage.info('餐厅电话不可用')
-  }
-}
-
-// 实时追踪
-const trackDelivery = () => {
-  if (deliveryInfo.value?.delivery_id) {
-    router.push(`/delivery/track/${deliveryInfo.value.delivery_id}`)
-  } else {
-    ElMessage.info('暂无法追踪配送')
   }
 }
 
@@ -531,16 +480,9 @@ const handleRatingSuccess = () => {
   showRatingDialog.value = false
 }
 
-// 处理骑手评价成功
-const handleDeliveryRatingSuccess = () => {
-  getDeliveryInfo()
-  showDeliveryRatingDialog.value = false
-}
-
 // 初始化
 onMounted(() => {
   getOrderDetail()
-  getDeliveryInfo()
 })
 </script>
 

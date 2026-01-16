@@ -12,7 +12,7 @@ import Address from './views/AddressView.vue'
 import Checkout from './views/CheckoutView.vue'
 import OrderDetail from './views/OrderDetailView.vue'
 import Restaurant from './views/RestaurantView.vue'
-
+import Payment from './views/PaymentView.vue'
 const routes = [ 
   { 
     path: '/', 
@@ -83,6 +83,12 @@ const routes = [
     path: '/restaurant/:id', 
     name: 'Restaurant', 
     component: Restaurant 
+  },
+  { 
+    path: '/payment/:id', 
+    name: 'Payment', 
+    component: Payment, 
+    meta: { requiresAuth: true } 
   },
 ] 
 

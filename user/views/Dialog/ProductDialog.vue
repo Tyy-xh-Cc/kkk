@@ -77,9 +77,9 @@
         <el-button type="primary" @click="addToCart" :disabled="quantity > (product.stock || 999)">
           添加到购物车
         </el-button>
-         <el-button type="success" @click="buyNow" :disabled="quantity > (product.stock || 999)">
+         <!-- <el-button type="success" @click="buyNow" :disabled="quantity > (product.stock || 999)">
           直接购买
-        </el-button>
+        </el-button> -->
       </div>
     </template>
   </el-dialog>

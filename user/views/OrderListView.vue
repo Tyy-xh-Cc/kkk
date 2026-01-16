@@ -36,39 +36,39 @@
         <div v-else>
           <div 
             v-for="order in orders" 
-            :key="order.order_id" 
+            :key="order.orderId" 
             class="order-item"
-            @click="viewOrderDetail(order.order_id)"
+            @click="viewOrderDetail(order.orderId)"
           >
             <div class="order-header">
               <div class="order-info">
-                <div class="restaurant-name">{{ order.restaurant_name }}</div>
+                <div class="restaurant-name">{{ order.restaurantName }}</div>
                 <div class="order-status" :class="getStatusClass(order.status)">
                   {{ getStatusText(order.status) }}
                 </div>
               </div>
-              <div class="order-time">{{ formatTime(order.created_at) }}</div>
+              <div class="order-time">{{ formatTime(order.createdAt) }}</div>
             </div>
             
             <div class="order-content">
               <div class="order-items">
-                <div class="item-name" v-for="item in order.items" :key="item.product_id">
-                  {{ item.product_name }} × {{ item.quantity }}
+                <div class="item-name" v-for="item in order.orderItems" :key="item.productId">
+                  {{ item.productName }} × {{ item.quantity }}
                 </div>
               </div>
               <div class="order-image">
-                <img :src="order.items[0]?.product_image || defaultProductImage" />
+                <img :src="order.orderItems[0]?.productImage || defaultProductImage" />
               </div>
             </div>
             
             <div class="order-footer">
               <div class="order-price">
-                共{{ order.item_count }}件商品，实付
-                <span class="price">¥{{ order.final_amount.toFixed(2) }}</span>
+                共{{ order.orderItems.length }}件商品，实付
+                <span class="price">¥{{ order.finalAmount.toFixed(2) }}</span>
               </div>
               <div class="order-actions">
                 <el-button 
-                  v-if="order.status === 'pending' && order.payment_status === 'pending'"
+                  v-if="order.status === 'pending' && order.paymentStatus === 'pending'"
                   type="primary" 
                   size="small"
                   @click.stop="payOrder(order)"
@@ -83,7 +83,7 @@
                   取消订单
                 </el-button>
                 <el-button 
-                  v-if="order.status === 'completed' && !order.user_rated"
+                  v-if="order.status === 'completed' && !order.userRated"
                   type="primary"
                   size="small"
                   @click.stop="rateOrder(order)"
@@ -114,6 +114,12 @@
         <span>加载中...</span>
       </div>
     </div>
+     <PaymentDialog 
+      v-model="showPaymentDialog"
+      :order-id="currentOrder?.orderId || ''"
+      :amount="currentOrder?.finalAmount || 0"
+      @success="handlePaymentSuccess"
+    />
   </div>
 </template>
 
@@ -124,6 +130,7 @@ import { ElMessage } from 'element-plus'
 import { Document, Loading } from '@element-plus/icons-vue'
 import api from '../api/index.js'
 import NavSide from './NavSide.vue'
+import PaymentDialog from './Dialog/PaymentDialog.vue'  // 新增导入
 const router = useRouter()
 
 // 数据定义
@@ -142,27 +149,31 @@ const hasMore = ref(true)
 const page = ref(1)
 const pageSize = 10
 const defaultProductImage = ''
-
+const showPaymentDialog = ref(false)
+const currentOrder = ref(null)
 // API: 获取订单列表
 const getOrders = async () => {
   loading.value = true
   try {
     const params = {
       page: page.value,
-      page_size: pageSize,
+      size: pageSize,
       status: activeTab.value === 'all' ? undefined : activeTab.value
     }
     
     const res = await api.order.getOrderList(params)
+    console.log(res.data);
     
     if (res.data) {
       if (page.value === 1) {
-        orders.value = res.data.list || []
+        orders.value = res.data.content || []
       } else {
-        orders.value = [...orders.value, ...(res.data.list || [])]
+        orders.value = [...orders.value, ...(res.data.content || [])]
       }
       hasMore.value = res.data.has_more || false
     }
+    console.log(orders.value);
+    
   } catch (error) {
     ElMessage.error('获取订单列表失败')
     console.error('获取订单列表失败:', error)
@@ -190,10 +201,10 @@ const viewOrderDetail = (orderId) => {
   router.push(`/order/${orderId}`)
 }
 
-// 支付订单
 const payOrder = async (order) => {
   try {
-    router.push(`/payment/${order.order_id}`)
+    currentOrder.value = order
+    showPaymentDialog.value = true
   } catch (error) {
     ElMessage.error('支付失败')
   }
@@ -202,8 +213,8 @@ const payOrder = async (order) => {
 // 取消订单
 const cancelOrder = async (order) => {
   try {
-    const res = await api.order.cancelOrder(order.order_id)
-    if (res.code === 200) {
+    const res = await api.order.cancelOrder(order.orderId)
+    if (res.data) {
       ElMessage.success('订单已取消')
       // 重新加载列表
       page.value = 1
@@ -218,14 +229,14 @@ const cancelOrder = async (order) => {
 
 // 评价订单
 const rateOrder = (order) => {
-  router.push(`/order/${order.order_id}`)
+  router.push(`/order/${order.orderId}`)
 }
 
 // 再来一单
 const reorder = async (order) => {
   try {
-    const res = await api.order.reorder(order.order_id)
-    if (res.code === 200) {
+    const res = await api.order.reorder(order.orderId)
+    if (res.data) {
       router.push('/cart')
       ElMessage.success('已添加到购物车')
     } else {

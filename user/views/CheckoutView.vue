@@ -153,6 +153,7 @@ import { ElMessage } from 'element-plus'
 import { ArrowLeft, ArrowRight, CircleCheck } from '@element-plus/icons-vue'
 import AddressSelector from './Selector/AddressSelector.vue'
 import api from '../api/index'
+import { id } from 'element-plus/es/locales.mjs'
 
 const router = useRouter()
 
@@ -283,10 +284,12 @@ const submitOrder = async () => {
     const orderData = {
     restaurantId: checkoutData.value.restaurant?.restaurantId,
     items: checkoutData.value.items.map(item => ({
+        id : item.id,
         productId: item.productId,
         quantity: item.quantity,
         productName: item.productName,
         price: item.productPrice,
+        productImage: item.productImageUrl,
         totalPrice: item.totalPrice,
         specifications: item.specifications
     })),
@@ -309,18 +312,8 @@ console.log(orderData);
     const res = await api.order.createOrder(orderData)
 
     if (res.data) {
-      // 清空购物车数据
-      localStorage.removeItem('checkout_data')
-
-      // 根据支付方式处理
-      if (paymentMethod.value === 'alipay' || paymentMethod.value === 'wechat') {
-        // 跳转到支付页面
-        router.push(`/payment/${res.data.order_id}`)
-      } else {
-        // 跳转到订单详情页面
-        router.push(`/order/${res.data.order_id}`)
-      }
-
+      removeItem()
+      router.push(`/order/${res.data.orderId}`)
       ElMessage.success('订单提交成功')
     } else {
       ElMessage.error(res.message || '提交订单失败')
@@ -332,7 +325,16 @@ console.log(orderData);
     submitting.value = false
   }
 }
-
+const removeItem = async () => {
+   try {
+    const res= await api.cart.removeCartItem(checkoutData.value.items.map(item => item.id))
+    ElMessage.success('删除成功')
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('删除失败')
+    }
+  }
+}
 // 返回上一页
 const goBack = () => {
   router.back()
@@ -340,8 +342,8 @@ const goBack = () => {
 
 // 跳转到餐厅
 const goToRestaurant = () => {
-  if (checkoutData.value.restaurant?.restaurant_id) {
-    router.push(`/restaurant/${checkoutData.value.restaurant.restaurant_id}`)
+  if (checkoutData.value.restaurant?.restaurantId) {
+    router.push(`/restaurant/${checkoutData.value.restaurant.restaurantId}`)
   }
 }
 

@@ -88,8 +88,8 @@
               <div class="price-info">
                 <div class="price">
                   <span class="current">¥{{ product.price }}</span>
-                  <span class="original" v-if="product.original_price && product.original_price > product.price">
-                    ¥{{ product.original_price }}
+                  <span class="original" v-if="product.originalPrice && product.originalPrice > product.price">
+                    ¥{{ product.originalPrice }}
                   </span>
                 </div>
                 <div class="sales">月售{{ product.sales_count || 0 }}</div>

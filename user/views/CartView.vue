@@ -258,8 +258,7 @@ const getCartItems = async () => {
       }
     }
   } catch (error) {
-    ElMessage.error('获取购物车失败')
-    console.error('获取购物车失败:', error)
+
   } finally {
     loading.value = false
   }
@@ -353,7 +352,7 @@ const formatSpecifications = (specs) => {
   if (!specs) return ''
   try {
     const parsed = JSON.parse(specs)
-    return Object.values(parsed).join('，')
+    return Object.values(parsed).join('/')
   } catch {
     return specs
   }

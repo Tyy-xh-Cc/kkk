@@ -80,7 +80,7 @@
   </template>
   
   <script setup>
-  import { ref, computed } from 'vue'
+  import { ref } from 'vue'
   import { ElMessage } from 'element-plus'
   import { Check, CreditCard, Wallet } from '@element-plus/icons-vue'
   import api from '../../api/index'
@@ -149,9 +149,9 @@
       
       // 调用支付API
       const res = await api.payment.createPayment({
-        order_id: props.orderId,
+        orderId: props.orderId,
         amount: props.amount,
-        payment_method: selectedPaymentMethod.value
+        paymentMethod: selectedPaymentMethod.value
       })
       
       // 模拟支付处理过程
